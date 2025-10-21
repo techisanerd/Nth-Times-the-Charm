@@ -1,11 +1,11 @@
-import classes
+import Classes
 
 class DataManager():
 
     def createReview():
         pass
 
-    def readReview():
+    def readReview() -> Review:
         pass
     
     def updateReview():
