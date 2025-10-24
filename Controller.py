@@ -1,11 +1,26 @@
-import Classes
+from Classes import *
+from pathlib import Path
 
 class DataManager():
+    __instance = None
+    #moviesFolder is the path to the Movies folder
+    moviesFolder = Path(__file__).resolve().parent / "Movies"
+
+    #init raises an error since this is a singleton
+    def __init__(self):
+        raise RuntimeError("This Object cannot be made with this function, please use getInstance")
+    
+    #this is how to instantiate the class
+    @classmethod
+    def getInstance(cls):
+        if cls.__instance == None:
+            cls.__instance = cls.__new__(cls)
+        return cls.__instance
 
     def createReview():
         pass
 
-    def readReview() -> Review:
+    def readReview():
         pass
     
     def updateReview():
@@ -69,3 +84,4 @@ class DataManager():
     # get all reports in database
     def getReports():
         pass
+
