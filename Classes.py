@@ -24,11 +24,47 @@ class Review():
         self.title = title
         self.description = description
     
-
-
-
-
-
+    
+    
 
 # def Movie:
+class Movie():
+
+    def __init__(self, title:str, rating:float, ratingCount:int, userReviews:int, criticReviews:int,
+                 metaScore:int, genres:list, directors:list, dateReleased:datetime.date,
+                 creators:list, actors:list, description:str, duration:int):
+
+        self.title = title
+        self.rating = rating
+        self.ratingCount = ratingCount
+        self.userReviews = userReviews
+        self.criticReviews = criticReviews
+        self.metaScore = metaScore
+        self.genres = genres
+        self.directors = directors
+        self.dateReleased = dateReleased
+        self.creators = creators
+        self.actors = actors
+        self.description = description
+        self.duration = duration
+
+    def addMovieData(cls, filepath:str):
+        with open(filepath, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+
+            return cls(
+                title=data['title'],
+                rating=data['movieIMDbRating'],
+                ratingCount=data['totalRatingCount'],
+                userReviews=data['totalUserReviews'],
+                criticReviews=data['totalCriticReviews'],
+                metaScore=data['metaScore'],
+                genres=data['movieGenres'],
+                directors=data['directors'],
+                dateReleased=datetime.datetime.strptime(data['datePublished'], '%Y-%m-%d').date(),
+                creators=data['creators'],
+                actors=data['mainStars'],
+                description=data['description'],
+                duration=data['duration']
+            )
 
