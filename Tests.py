@@ -1,5 +1,5 @@
 import pytest
-from Controller import *
+from DataManager import *
 
 def testSingleton():
     """Testing that we only get one instance of DataManager"""
