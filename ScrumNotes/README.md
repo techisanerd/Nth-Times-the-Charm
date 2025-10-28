@@ -19,11 +19,11 @@ Tasks:
  4.Complete singleton, review Owen's and Estella's code -Margaret   
 
 # Sprint
- Date: October 28
- Attendees: Nash, Estella, Margaret
- Meeting purpose: Assign tasks for this week
- Tasks:
- 1.Data Manager - Owen, Nash (Note: they plan to split up the functions in data manager)
- 2.Fast Api - Margaret
- 3.Front End - Estella 
+ Date: October 28  
+ Attendees: Nash, Estella, Margaret  
+ Meeting purpose: Assign tasks for this week  
+ Tasks:  
+ 1.Data Manager - Owen, Nash (Note: they plan to split up the functions in data manager)  
+ 2.Fast Api - Margaret  
+ 3.Front End - Estella   
 
