@@ -1,6 +1,8 @@
 from Classes import *
 from pathlib import Path
 
+import json, datetime
+
 class DataManager():
     __instance = None
     #moviesFolder is the path to the Movies folder
@@ -32,8 +34,11 @@ class DataManager():
     def createMovie():
         pass
 
-    def readMovie():
-        pass
+    def readMovie(self, filename:str):
+        filepath = self.moviesFolder / filename
+        with open(filepath, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            return Movie.from_json(data)
     
     def updateMovie():
         pass
@@ -70,8 +75,13 @@ class DataManager():
         pass
     
     # get list of all movie objects in database
-    def getMovies():
-        pass
+    def getMovies(self) -> list:
+        movies = []
+        for file in self.moviesFolder.glob('*.json'):
+            with open(file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                movies.append(Movie.from_json(data))
+        return movies
 
     # get list of all reviews in database
     def getReviews():
