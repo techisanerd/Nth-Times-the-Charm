@@ -48,23 +48,20 @@ class Movie():
         self.description = description
         self.duration = duration
 
-    def addMovieData(cls, filepath:str):
-        with open(filepath, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-
-            return cls(
-                title=data['title'],
-                rating=data['movieIMDbRating'],
-                ratingCount=data['totalRatingCount'],
-                userReviews=data['totalUserReviews'],
-                criticReviews=data['totalCriticReviews'],
-                metaScore=data['metaScore'],
-                genres=data['movieGenres'],
-                directors=data['directors'],
-                dateReleased=datetime.datetime.strptime(data['datePublished'], '%Y-%m-%d').date(),
-                creators=data['creators'],
-                actors=data['mainStars'],
-                description=data['description'],
-                duration=data['duration']
-            )
+    def from_json(cls, data:dict):
+        return cls(
+            title=data['title'],
+            rating=data['movieIMDbRating'],
+            ratingCount=data['totalRatingCount'],
+            userReviews=data['totalUserReviews'],
+            criticReviews=data['totalCriticReviews'],
+            metaScore=data['metaScore'],
+            genres=data['movieGenres'],
+            directors=data['directors'],
+            dateReleased=datetime.datetime.strptime(data['datePublished'], '%Y-%m-%d').date(),
+            creators=data['creators'],
+            actors=data['mainStars'],
+            description=data['description'],
+            duration=data['duration']
+        )
 
