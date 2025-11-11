@@ -1,9 +1,1 @@
-[
-    {
-        "name": "dorothy",
-        "email": "asdf",
-        "profilePic": "link goes here",
-        "passwordHash": "hash",
-        "auth": null
-    }
-]
+[]
