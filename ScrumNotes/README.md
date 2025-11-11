@@ -27,3 +27,24 @@ Tasks:
  2.Fast Api - Margaret  
  3.Front End - Estella   
 
+ # Sprint
+ Date: November 11  
+ Attendees: Nash, Estella, Margaret, Owen  
+ Tasks:  
+  
+Estella:  
+Working on: review manager  
+  
+Margaret:  
+Working on: movie controller, admin controller, some sort of class for API  
+  
+Nash:  
+Working on: data manager, user class, rewrite M1  
+
+Owen:  
+Working on: movie manager, session  
+
+Deadline: Saturday November 15th   
+
+Needs to be done in future sprint: admin manager, auth manager, reports, containerization with docker, reorganize the folder structure 
+
