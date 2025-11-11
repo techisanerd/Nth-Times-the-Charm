@@ -84,8 +84,13 @@ class DataManager():
         return movies
 
     # get list of all reviews in database
-    def getReviews():
-        pass
+    def getReviews(self) -> list:
+        reviews = []
+        for file in self.reviewFolder.glob():
+            with open(file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                reviews.append(Review.from_json(data))
+        return reviews
 
     # get list of all users in database
     def getMovies():
