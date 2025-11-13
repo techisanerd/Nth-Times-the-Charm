@@ -1,7 +1,7 @@
 from Classes import *
 from pathlib import Path
-
-import json, os
+from datetime import datetime
+import json, os, csv
 
 class DataManager():
     __instance = None
@@ -19,21 +19,40 @@ class DataManager():
         if cls.__instance == None:
             cls.__instance = cls.__new__(cls)
         return cls.__instance
-
-    def createReview():
-        pass
-
-    def readReview():
-        pass
     
-    def updateReview():
-        pass
 
-    def deleteReview():
-        pass
+    def readReviews(self, movie):
+        #todo factor out this string
+        with open('.\\Movies\\' + movie + '\\movieReviews1.csv', mode ='r', newline='', encoding='utf8')as file:
+            reviewList = []
+            for lines in csv.reader(file):
+                if lines[0].startswith("Date of Review"):# skips the first (header) line of reviews
+                    continue
+                reviewDate = datetime.strptime(lines[0], "%d %B %Y").date()
+                reviewer = lines[1]
+                usefulnessVote = int(lines[2])
+                totalVotes = int(lines[3])
+                try:
+                    rating = int(lines[4])
+                except ValueError: # the data is messy and doesn't show this sometimes 
+                    rating = -1
+                title = lines[5]
+                description = lines[6]
 
-    def createMovie():
-        pass
+                review = Review(reviewDate, reviewer, usefulnessVote, totalVotes, rating, title, description)
+                reviewList.append(review)
+            return reviewList
+
+
+    def writeReviews(self, movie, reviewList):
+        with open('.\\Movies\\' + movie + '\\movieReviews1.csv', mode ='w', newline='', encoding='utf8') as file:
+            writer = csv.writer(file)
+
+            for review in reviewList:
+                date = datetime.strftime(review.reviewDate, "%d %B %Y")
+                l = [date, review.reviewer, str(review.usefulnessVote), str(review.totalVotes), str(review.rating), review.title, review.description]
+                writer.writerow(l) 
+        
 
     def readMovie(self, filename:str):
         filepath = self.moviesFolder / filename
@@ -87,7 +106,6 @@ class DataManager():
     def getReviews():
         pass
 
-    # get list of all users in database
-        # get all reports in database
+    # get all reports in database
     def getReports():
         pass
