@@ -1,13 +1,14 @@
 from Classes import *
 from pathlib import Path
 
-import json, datetime
+import json, os
 
 class DataManager():
     __instance = None
     #moviesFolder is the path to the Movies folder
     moviesFolder = Path(__file__).resolve().parent / "Movies"
-
+    #path to json file storing user data 
+    userFile = ".\\users.json"
     #init raises an error since this is a singleton
     def __init__(self):
         raise RuntimeError("This Object cannot be made with this function, please use getInstance")
@@ -45,24 +46,23 @@ class DataManager():
 
     def deleteMovie():
         pass
-
-    def createUser():
-        pass
-
-    def readUser():
-        pass
     
-    def updateUser():
-        pass
+    
+    def getUsers(self):
+        dictList = [] 
+        if os.path.exists(self.userFile):
+            with open(self.userFile, "r") as f:
+                dictList = json.load(f)
 
-    def deleteUser():
-        pass
+        #deserialize: create new object for each user in the json dictionary
+        userList = [User(**userData) for userData in dictList]
+        return userList
 
-    def createSession():
-        pass
 
-    def deleteSession():
-        pass
+    def writeUsers(self, users:list[User]):
+        with open(self.userFile, "w") as file:
+            #store as a json: each user is converted to a dict(ionary) of its attributes, within the list
+            json.dump([user.__dict__ for user in users], file, indent=4)
 
     def createReport():
         pass
@@ -93,10 +93,6 @@ class DataManager():
         return reviews
 
     # get list of all users in database
-    def getMovies():
-        pass
-
-    # get all reports in database
+        # get all reports in database
     def getReports():
         pass
-
