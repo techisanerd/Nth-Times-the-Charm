@@ -1,5 +1,6 @@
 from DataManager import DataManager
 from Classes import User, Movie, Review
+from datetime import datetime
 
 class UserManager():
     def readUser(name:str) -> User|None:
@@ -62,11 +63,18 @@ class UserManager():
         return initialSize < len(userList)
     
 class ReviewManager():
-    def createReview() -> Review | None:
-        pass
+    def createReview(movie, reviewDate:datetime.date, reviewer, usefulnessVote:int, totalVotes:int, rating:int, 
+                 title:str, description:str) -> Review | None:
+        review = Review(reviewDate, reviewer, usefulnessVote, totalVotes, rating, title, description)
+        dataMan = DataManager.getInstance()
+        reviewList = dataMan.readReviews(movie)
+        reviewList.append(review)
+        dataMan.writeReviews(movie, reviewList)
+        return review
+
     def readReview(movie:str, reviewer:str) -> list[Review]:
         dataMan = DataManager.getInstance()
-        reviewList = dataMan.getReviews(movie)
+        reviewList = dataMan.readReviews(movie)
         foundList = []
         for r in reviewList:
             if r.reviewer == reviewer:
@@ -75,11 +83,11 @@ class ReviewManager():
         return foundList 
     
 
-    def updateReview(movie, review, reviewDate:datetime.date=None, reviewer=None, usefulnessVote:int=None, totalVotes:int=None, rating:int=None, 
+    def updateReview(movie, review, reviewDate:datetime=None, reviewer=None, usefulnessVote:int=None, totalVotes:int=None, rating:int=None, 
                  title:str=None, description:str=None) -> Review:
         ReviewManager.deleteReview(movie, review)
  
-        if review.reviewDate is not None:
+        if reviewDate is not None:
             review.reviewDate = reviewDate
         if reviewer is not None:
             review.reviewer = reviewer
@@ -87,7 +95,6 @@ class ReviewManager():
             review.usefulnessVote = usefulnessVote
         if totalVotes is not None:
             review.totalVotes = totalVotes
-
         if rating is not None:
             review.rating = rating
         if title is not None:
@@ -96,16 +103,24 @@ class ReviewManager():
             review.description = description
 
         dataMan = DataManager.getInstance()
-        reviewList = dataMan.getReviews(movie)
+        reviewList = dataMan.readReviews(movie)
         reviewList.append(review)
-        dataMan.writeUsers(reviewList)
-        pass
+        dataMan.writeReviews(movie, reviewList)
+        return review
 
-    def deleteReview() -> bool:
-        pass
+    def deleteReview(movie, review:Review) -> bool:
+        dataMan = DataManager.getInstance()
+        reviewList = dataMan.readReviews(movie)
+        
+        initialSize = len(reviewList)
+        reviewList = [r for r in reviewList if r.reviewer == review.reviewer and
+        r.title == review.title]
+        return initialSize > len(reviewList)
+    
 
-    def getReviews():
-        pass
-
+    def getReviews(movie):
+        dataMan = DataManager.getInstance()
+        return dataMan.getReviews(movie)
+ 
 class MovieManager():
     pass

@@ -23,7 +23,7 @@ class DataManager():
 
     def readReviews(self, movie):
         #todo factor out this string
-        with open('.\\Movies\\' + movie + '\\movieReviews1.csv', mode ='r', newline='', encoding='utf8')as file:
+        with open('.\\Movies\\' + movie + '\\movieReviews.csv', mode ='r', newline='', encoding='utf8')as file:
             reviewList = []
             for lines in csv.reader(file):
                 if lines[0].startswith("Date of Review"):# skips the first (header) line of reviews
@@ -45,7 +45,7 @@ class DataManager():
 
 
     def writeReviews(self, movie, reviewList):
-        with open('.\\Movies\\' + movie + '\\movieReviews1.csv', mode ='w', newline='', encoding='utf8') as file:
+        with open('.\\Movies\\' + movie + '\\movieReviews.csv', mode ='w', newline='', encoding='utf8') as file:
             writer = csv.writer(file)
 
             for review in reviewList:
