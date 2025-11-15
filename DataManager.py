@@ -23,8 +23,11 @@ class DataManager():
     def createReview():
         pass
 
-    def readReview():
-        pass
+    def readReview(self, filename:str):
+        filepath = self.moviesFolder / filename
+        with open(filepath, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            return Review.from_json(data)
     
     def updateReview():
         pass
@@ -86,7 +89,7 @@ class DataManager():
     # get list of all reviews in database
     def getReviews(self) -> list:
         reviews = []
-        for file in self.reviewFolder.glob():
+        for file in self.moviesFolder.glob():
             with open(file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 reviews.append(Review.from_json(data))
@@ -96,3 +99,4 @@ class DataManager():
         # get all reports in database
     def getReports():
         pass
+
