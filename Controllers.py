@@ -4,6 +4,7 @@ from datetime import date
 from DataManager import DataManager
 from Managers import UserManager
 from Managers import ReviewManager
+from Managers import MovieManager
 from Classes import Review
 from Classes import User
 
@@ -62,6 +63,41 @@ class ReviewController():
                 foundReviews.append(r)
         return foundReviews
 
+class MovieController():
+    
+    def searchByTags(tags:list):
+        movies = MovieManager.getMovies()
+        foundMovies = []
+        for t in tags:
+            for m in movies:
+                if (t in m.genres or t in m.directors or t in m.creators or t in m.actors):
+                    foundMovies.append(m)
+                else:
+                    if(m in foundMovies):
+                        foundMovies.remove(m)
+        return foundMovies
 
+    def searchByName(search:str):
+        movies = MovieManager.getMovies()
+        foundMovies = []
+        for m in movies:
+            if (search.toLower() in movies.title.toLower()):
+                foundMovies.append
+        return foundMovies
+    
+    def getAllTags():
+        tags = []
+        movies = MovieManager.getMovies()
+        for m in movies:
+            tags += m.genres
+            tags += m.directors
+            tags += m.creators
+            tags += m.actors
+        tags = set(tags)
+        return tags
+    
+    
+
+    
 
         
