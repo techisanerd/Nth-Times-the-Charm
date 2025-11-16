@@ -1,9 +1,9 @@
 import pytest
-import json
+import json, csv
 import datetime
 from DataManager import DataManager
 from Managers import UserManager
-from Classes import Movie 
+from Classes import Movie, Review 
 from pathlib import Path
 
 def testSingleton():
@@ -142,7 +142,67 @@ def testDeleteNonExistentMovie(tempMoviesFolder):
     deleted = dm.deleteMovie("NonExistent Movie")
     assert deleted is False
 
+#tests for review manager functions
 
+#review object for tests
+def sampleReview():
+    return Review(
+        reviewDate=datetime.date(2025, 11, 15),
+        reviewer="Jane Doe",
+        usefullnessVote=703,
+        totalVotes=1040,
+        rating=7.5,
+        title="Test review",
+        description="Good review here",
+    )
+
+def testCreateReview(tempMoviesFolder):
+    dm = tempMoviesFolder
+    review = sampleReview()
+
+    created = dm.createReview(review)
+    assert created is True
+    filepath = dm.moviesFolder / "Test_Review.csv"
+    assert filepath.exists()
+
+    #check to see if data is correct
+    with open(filepath, 'r', encoding='utf-8') as f:
+        data = csv.load(f)
+
+    assert data["reviewDate"] == datetime.date(2025, 11, 15)
+    assert data["reviewer"] == "Jane Doe"
+    assert data["usefullnessVote"] == 107
+    assert data["totalVotes"] == 1040
+    assert data["rating"] == 7.5
+    assert data["title"] == "Test review"
+    assert data["description"] == "Good review here"
+
+
+def testUpdateReview(tempMoviesFolder):
+    dm = tempMoviesFolder
+    review = sampleReview()
+    
+    created = dm.createReview(review)
+    assert created is True
+
+    #modify some attributes
+    review.rating = 7.0
+    review.description = "An updated test description for a review."
+    review.title = "Updated test review"
+
+    #update review file
+    updated = dm.updateReview(review)
+    assert updated is True
+    filepath = dm.moviesFolder / "Test_Review.csv"
+    assert filepath.exists()
+
+    #reload and verify
+    with open(filepath, 'r', encoding='utf-8') as f:
+        data = csv.load(f)
+
+    assert data["rating"] == 7.0
+    assert data["description"] == "An updated test description for a review."
+    assert data["title"] == "Updated test review"
 
 
 
