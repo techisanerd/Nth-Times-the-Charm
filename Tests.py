@@ -120,6 +120,29 @@ def testUpdateNonExistentMovie(tempMoviesFolder):
     updated = dm.updateMovie(movie)
     assert updated is False
 
+#test for deleteing a movie
+def testDeleteMovie(tempMoviesFolder):
+    dm = tempMoviesFolder
+    movie = sampleMovie()
+    
+    #create movie
+    assert dm.createMovie(movie) is True
+    filepath = dm.moviesFolder / "Test_Movie.json"
+    assert filepath.exists()
+
+    #delete it
+    deleted = dm.deleteMovie("Test Movie")
+    assert deleted is True
+    assert not filepath.exists()
+
+#test for deleting a non-existent movie
+def testDeleteNonExistentMovie(tempMoviesFolder):
+    dm = tempMoviesFolder
+
+    deleted = dm.deleteMovie("NonExistent Movie")
+    assert deleted is False
+
+
 
 
 

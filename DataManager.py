@@ -99,9 +99,17 @@ class DataManager():
 
         return True
 
-    def deleteMovie():
-        pass
-    
+    def deleteMovie(self, title: str) -> bool:
+        filename = f"{title.replace(' ', '_')}.json"
+        filepath = self.moviesFolder / filename
+
+        # check if exists
+        if not filepath.exists():
+            return False
+        
+        #delete file
+        filepath.unlink()
+        return True
     
     def getUsers(self):
         dictList = [] 
