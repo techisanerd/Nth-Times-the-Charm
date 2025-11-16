@@ -84,5 +84,44 @@ def testCreateMovie(tempMoviesFolder):
     assert data["description"] == "A test movie for unit testing."
     assert data["duration"] == 125
 
-#continue
+#test for updating a movie
+def testUpdateMovie(tempMoviesFolder):
+    dm = tempMoviesFolder
+    movie = sampleMovie()
+    
+    created = dm.createMovie(movie)
+    assert created is True
+
+    #modify some attributes
+    movie.rating = 8.0
+    movie.description = "An updated test movie description."
+    movie.duration = 130
+
+    #update movie file
+    updated = dm.updateMovie(movie)
+    assert updated is True
+    filepath = dm.moviesFolder / "Test_Movie.json"
+    assert filepath.exists()
+
+    #reload and verify
+    with open(filepath, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    assert data["movieIMDbRating"] == 8.0
+    assert data["description"] == "An updated test movie description."
+    assert data["duration"] == 130
+
+#test for updating a non-existent movie
+def testUpdateNonExistentMovie(tempMoviesFolder):
+    dm = tempMoviesFolder
+    movie = sampleMovie()
+
+    #try to update without creating first
+    updated = dm.updateMovie(movie)
+    assert updated is False
+
+
+
+
+
 

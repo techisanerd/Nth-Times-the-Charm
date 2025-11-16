@@ -68,8 +68,36 @@ class DataManager():
             data = json.load(file)
             return Movie.from_json(data)
     
-    def updateMovie():
-        pass
+    def updateMovie(self, movie:Movie) -> bool:
+        filename = f"{movie.title.replace(' ', '_')}.json"
+        filepath = self.moviesFolder / filename
+
+        # check if movie exists
+        if not filepath.exists():
+            return False
+        
+        # convert to json
+        data = {
+            "title": movie.title,
+            "movieIMDbRating": movie.rating,
+            "totalRatingCount": movie.ratingCount,
+            "totalUserReviews": movie.userReviews,
+            "totalCriticReviews": movie.criticReviews,
+            "metaScore": movie.metaScore,
+            "movieGenres": movie.genres,
+            "directors": movie.directors,
+            "datePublished": movie.dateReleased.strftime("%Y-%m-%d"),
+            "creators": movie.creators,
+            "mainStars": movie.actors,
+            "description": movie.description,
+            "duration": movie.duration
+        }
+
+        # overwrite existing file with updated data
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=4)
+
+        return True
 
     def deleteMovie():
         pass
