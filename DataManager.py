@@ -20,8 +20,29 @@ class DataManager():
             cls.__instance = cls.__new__(cls)
         return cls.__instance
 
-    def createReview():
-        pass
+    def createReview(self, review:Review) -> bool:
+        filepath = f"{review.title.replace(' ', '_')}.csv"
+        filepath = self.moviesFolder / filepath
+
+        # prevent overwriting exisiting review files
+        if filepath.exists():
+            return False
+        
+        data = {
+            "reviewDate": review.reviewDate,
+            "reviewer": review.reviewer,
+            "usefullnessVote": review.usefullnessVote,
+            "totalVotes": review.totalVotes,
+            "rating": review.rating,
+            "title": review.title,
+            "description": review.description,
+        }
+
+        # write review data to csv file
+        with open(filepath, 'w', encoding='utf-8') as f:
+            csv.dump(data, f, indent=4)   
+
+        return True
 
     def readReview(self, filename:str):
         filepath = self.moviesFolder / filename
@@ -100,7 +121,7 @@ class DataManager():
         if not filepath.exists():
             return False
         
-        # convert to json
+        # convert to csv
         data = {
             "title": movie.title,
             "movieIMDbRating": movie.rating,
