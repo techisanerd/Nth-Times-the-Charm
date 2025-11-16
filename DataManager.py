@@ -41,19 +41,19 @@ class DataManager():
             return False
         
         data = {
-            "title": Movie.title,
-            "movieIMDbRating": Movie.rating,
-            "totalRatingCount": Movie.ratingCount,
-            "totalUserReviews": Movie.userReviews,
-            "totalCriticReviews": Movie.criticReviews,
-            "metaScore": Movie.metaScore,
-            "movieGenres": Movie.genres,
-            "directors": Movie.directors,
-            "datePublished": Movie.dateReleased.strftime("%Y-%m-%d"),
-            "creators": Movie.creators,
-            "mainStars": Movie.actors,
-            "description": Movie.description,
-            "duration": Movie.duration
+            "title": movie.title,
+            "movieIMDbRating": movie.rating,
+            "totalRatingCount": movie.ratingCount,
+            "totalUserReviews": movie.userReviews,
+            "totalCriticReviews": movie.criticReviews,
+            "metaScore": movie.metaScore,
+            "movieGenres": movie.genres,
+            "directors": movie.directors,
+            "datePublished": movie.dateReleased.strftime("%Y-%m-%d"),
+            "creators": movie.creators,
+            "mainStars": movie.actors,
+            "description": movie.description,
+            "duration": movie.duration
         }
 
         # write movie data to json file
