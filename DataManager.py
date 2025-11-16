@@ -33,7 +33,7 @@ class DataManager():
         pass
 
     def createMovie(self, movie: Movie) -> bool:
-        filepath = f"{Movie.title.replace(' ', '_')}.json"
+        filepath = f"{movie.title.replace(' ', '_')}.json"
         filepath = self.moviesFolder / filepath
 
         # prevent overwriting exisiting movie files
