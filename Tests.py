@@ -57,8 +57,8 @@ def sampleMovie():
     )
 
 #test creating a movie
-def testCreateMovie(tmpMoviesFolder):
-    dm = tmpMoviesFolder
+def testCreateMovie(tempMoviesFolder):
+    dm = tempMoviesFolder
     movie = sampleMovie()
 
     created = dm.createMovie(movie)
