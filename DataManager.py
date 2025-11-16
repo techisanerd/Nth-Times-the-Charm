@@ -29,8 +29,29 @@ class DataManager():
             data = csv.load(file)
             return Review.from_csv(data)
     
-    def updateReview():
-        pass
+    def updateReview(self, review:Review) -> bool:
+        filename = f"{review.title.replace(' ', '_')}.csv"
+        filepath = self.moviesFolder / filename
+
+        # check if review exists
+        if not filepath.exists():
+            return False
+        
+        data = {
+            "reviewDate": review.reviewDate,
+            "reviewer": review.reviewer,
+            "usefullnessVote": review.usefullnessVote,
+            "totalVotes": review.totalVotes,
+            "rating": review.rating,
+            "title": review.title,
+            "description": review.description,
+        }
+
+        # overwrite existing file with updated data
+        with open(filepath, 'w', encoding='utf-8') as f:
+            csv.dump(data, f, indent=4)
+
+        return True
 
     def deleteReview():
         pass
