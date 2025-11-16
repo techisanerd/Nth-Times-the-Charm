@@ -1,7 +1,7 @@
 from Classes import *
 from pathlib import Path
 
-import json, os
+import json, os, csv
 
 class DataManager():
     __instance = None
@@ -26,8 +26,8 @@ class DataManager():
     def readReview(self, filename:str):
         filepath = self.moviesFolder / filename
         with open(filepath, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-            return Review.from_json(data)
+            data = csv.load(file)
+            return Review.from_csv(data)
     
     def updateReview():
         pass
@@ -91,8 +91,8 @@ class DataManager():
         reviews = []
         for file in self.moviesFolder.glob():
             with open(file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                reviews.append(Review.from_json(data))
+                data = csv.load(f)
+                reviews.append(Review.from_csv(data))
         return reviews
 
     # get list of all users in database
