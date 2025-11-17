@@ -54,18 +54,84 @@ class DataManager():
                 writer.writerow(l) 
         
 
+    def createMovie(self, movie: Movie) -> bool:
+        filepath = f"{movie.title.replace(' ', '_')}.json"
+        filepath = self.moviesFolder / filepath
+
+        # prevent overwriting exisiting movie files
+        if filepath.exists():
+            return False
+        
+        data = {
+            "title": movie.title,
+            "movieIMDbRating": movie.rating,
+            "totalRatingCount": movie.ratingCount,
+            "totalUserReviews": movie.userReviews,
+            "totalCriticReviews": movie.criticReviews,
+            "metaScore": movie.metaScore,
+            "movieGenres": movie.genres,
+            "directors": movie.directors,
+            "datePublished": movie.dateReleased.strftime("%Y-%m-%d"),
+            "creators": movie.creators,
+            "mainStars": movie.actors,
+            "description": movie.description,
+            "duration": movie.duration
+        }
+
+        # write movie data to json file
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=4)   
+
+        return True  
+
     def readMovie(self, filename:str):
         filepath = self.moviesFolder / filename
         with open(filepath, 'r', encoding='utf-8') as file:
             data = json.load(file)
             return Movie.from_json(data)
     
-    def updateMovie():
-        pass
+    def updateMovie(self, movie:Movie) -> bool:
+        filename = f"{movie.title.replace(' ', '_')}.json"
+        filepath = self.moviesFolder / filename
 
-    def deleteMovie():
-        pass
-    
+        # check if movie exists
+        if not filepath.exists():
+            return False
+        
+        # convert to json
+        data = {
+            "title": movie.title,
+            "movieIMDbRating": movie.rating,
+            "totalRatingCount": movie.ratingCount,
+            "totalUserReviews": movie.userReviews,
+            "totalCriticReviews": movie.criticReviews,
+            "metaScore": movie.metaScore,
+            "movieGenres": movie.genres,
+            "directors": movie.directors,
+            "datePublished": movie.dateReleased.strftime("%Y-%m-%d"),
+            "creators": movie.creators,
+            "mainStars": movie.actors,
+            "description": movie.description,
+            "duration": movie.duration
+        }
+
+        # overwrite existing file with updated data
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=4)
+
+        return True
+
+    def deleteMovie(self, title: str) -> bool:
+        filename = f"{title.replace(' ', '_')}.json"
+        filepath = self.moviesFolder / filename
+
+        # check if exists
+        if not filepath.exists():
+            return False
+        
+        #delete file
+        filepath.unlink()
+        return True
     
     def getUsers(self):
         dictList = [] 
@@ -103,9 +169,17 @@ class DataManager():
         return movies
 
     # get list of all reviews in database
-    def getReviews():
-        pass
+    def getReviews(self) -> list:
+        reviews = []
+        for file in self.reviewFolder.glob():
+            with open(file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                reviews.append(Review.from_json(data))
+        return reviews
 
-    # get all reports in database
+    # get list of all users in database
+        # get all reports in database
     def getReports():
         pass
+
+

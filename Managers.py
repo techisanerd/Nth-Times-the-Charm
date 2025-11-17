@@ -124,3 +124,42 @@ class ReviewManager():
  
 class MovieManager():
     pass
+
+# movie manager class
+class MovieManager():
+
+    def createMovie(movie:Movie):
+        dataMan = DataManager.getInstance()
+        filename = f"{movie.title.replace(' ', '_')}.json"
+
+        #check if exists 
+        for m in dataMan.getMovies():
+            if m.title == movie.title:
+                return None
+            
+        success = dataMan.createMovie(movie)
+        return movie if success else None
+
+    def readMovie(title:str):
+        dataMan = DataManager.getInstance()
+        filename = f"{title.replace(' ', '_')}.json"
+
+        try:
+            return dataMan.readMovie(filename)
+        except FileNotFoundError:
+            return None
+    
+    def updateMovie(movie:Movie):
+        dataMan = DataManager.getInstance()
+        success = dataMan.updateMovie(movie)
+        return movie if success else None
+
+    def deleteMovie(title:str):
+        dataMan = DataManager.getInstance()
+        return dataMan.deleteMovie(title)
+        
+    def getMovies():
+        dataMan = DataManager.getInstance()
+        return dataMan.getMovies()
+
+    
