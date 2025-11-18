@@ -1,9 +1,9 @@
 import pytest
 import json
-import datetime
+from datetime import datetime, date
 from DataManager import DataManager
-from Managers import UserManager
-from Classes import Movie 
+from Managers import UserManager, ReviewManager
+from Classes import Movie, Review
 from pathlib import Path
 
 def testSingleton():
@@ -49,7 +49,7 @@ def sampleMovie():
         metaScore=65,
         genres=["Drama", "Thriller"],
         directors=["Jane Doe"],
-        dateReleased=datetime.date(2020, 5, 20),
+        dateReleased=date(2020, 5, 20),
         creators=["John Smith"],
         actors=["Actor A", "Actor B"],
         description="A test movie for unit testing.",
@@ -143,8 +143,50 @@ def testDeleteNonExistentMovie(tempMoviesFolder):
     assert deleted is False
 
 
+def testReviewManager():
+    review = ReviewManager.createReview(
+            movie="The Avengers",
+            reviewDate=datetime.now().date(),
+            reviewer="TESTUSER",
+            usefulnessVote=1,
+            totalVotes=2,
+            rating=3,
+            title="test review",
+            description="dest desc.")
+
+    review = ReviewManager.updateReview(
+        "The Avengers",
+        review,
+        title="updated title",
+        description="updated desc"
+    )
+    assert review.title == "updated title"
+    assert review.description == "updated desc"
+
+    result = ReviewManager.deleteReview("The Avengers", review)
+    assert result is True
+
+def testDataManagerReview():
+    dataMan = DataManager.getInstance()
+    reviewList = dataMan.readReviews("The Avengers")
+    
+    original_count = len(reviewList)
+    review =Review(
+        reviewDate=datetime.now().date(),
+        reviewer="TESTUSER",
+        usefulnessVote=1,
+        totalVotes=2,
+        rating=3,
+        title="test review",
+        description="dest desc."
+    )
 
 
+    reviewList.append(review)
+    dataMan.writeReviews("The Avengers", reviewList)
 
+    newList = dataMan.readReviews("The Avengers")
+    assert len(newList) == original_count + 1
 
-
+    newList.pop()
+    dataMan.writeReviews("The Avengers", newList)
