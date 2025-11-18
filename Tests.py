@@ -142,6 +142,41 @@ def testDeleteNonExistentMovie(tempMoviesFolder):
     deleted = dm.deleteMovie("NonExistent Movie")
     assert deleted is False
 
+#test for getMovies
+def testGetMovies(tempMoviesFolder):
+    dm = tempMoviesFolder
+    movie1 = sampleMovie()
+
+    movie2 = Movie(
+        title="Another Test Movie",
+        rating=6.5,
+        ratingCount=800,
+        userReviews=150,
+        criticReviews=30,
+        metaScore=55,
+        genres=["Comedy"],
+        directors=["Director A"],
+        dateReleased=date(2019, 8, 15),
+        creators=["Creator B"],
+        actors=["Actor C", "Actor D"],
+        description="Another test movie for testing",
+        duration=110
+    )
+
+    assert dm.createMovie(movie1) is True
+    assert dm.createMovie(movie2) is True
+    movies = dm.getMovies()
+
+    #make sure we have both movie objects
+    assert len(movies) == 2
+
+    titles = {movie.title for movie in movies}
+    assert titles == {"Test Movie", "Another Test Movie"}
+
+    #make sure they are movie instances
+    for m in movies:
+        assert isinstance(m, Movie)
+
 
 def testReviewManager():
     review = ReviewManager.createReview(
@@ -190,3 +225,5 @@ def testDataManagerReview():
 
     newList.pop()
     dataMan.writeReviews("The Avengers", newList)
+
+
