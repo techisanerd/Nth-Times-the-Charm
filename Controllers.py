@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from datetime import date
 from DataManager import DataManager
 from Managers import UserManager
-from Managers import ReviewManager
+from Managers import ReviewManager, MovieManager
 from Classes import Review
 from Classes import User
 

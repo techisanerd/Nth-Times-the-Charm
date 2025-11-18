@@ -1,1 +1,9 @@
-[]
+[
+    {
+        "name": "TestUser",
+        "email": "mail@example.com",
+        "profilePic": "https://profilepic.example.com",
+        "passwordHash": "6b7a22516155153f08cf3e5b2d8ef82c59457e1cc7706a7fddf1ef2a",
+        "auth": null
+    }
+]
