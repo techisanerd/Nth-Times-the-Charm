@@ -65,8 +65,10 @@ class ReviewController():
 
 class MovieController():
     
-    def searchByTags(tags:list):
+    def searchByTags(tags:list = []):
         movies = MovieManager.getMovies()
+        if(tags == []):
+            return movies
         foundMovies = []
         for t in tags:
             for m in movies:
@@ -79,6 +81,8 @@ class MovieController():
 
     def searchByName(search:str):
         movies = MovieManager.getMovies()
+        if(search == []):
+            return movies
         foundMovies = []
         for m in movies:
             if (search.toLower() in movies.title.toLower()):
