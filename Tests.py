@@ -1,6 +1,6 @@
 import pytest
 import json
-import datetime
+from datetime import datetime, date
 from DataManager import DataManager
 from Managers import UserManager
 from Controllers import UserController
@@ -10,6 +10,8 @@ from Classes import Review
 from datetime import date
 from fastapi import HTTPException
 from Classes import Movie 
+from Managers import UserManager, ReviewManager
+from Classes import Movie, Review
 from pathlib import Path
 
 def testSingleton():
@@ -131,7 +133,7 @@ def sampleMovie():
         metaScore=65,
         genres=["Drama", "Thriller"],
         directors=["Jane Doe"],
-        dateReleased=datetime.date(2020, 5, 20),
+        dateReleased=date(2020, 5, 20),
         creators=["John Smith"],
         actors=["Actor A", "Actor B"],
         description="A test movie for unit testing.",
@@ -224,9 +226,88 @@ def testDeleteNonExistentMovie(tempMoviesFolder):
     deleted = dm.deleteMovie("NonExistent Movie")
     assert deleted is False
 
+#test for getMovies
+def testGetMovies(tempMoviesFolder):
+    dm = tempMoviesFolder
+    movie1 = sampleMovie()
+
+    movie2 = Movie(
+        title="Another Test Movie",
+        rating=6.5,
+        ratingCount=800,
+        userReviews=150,
+        criticReviews=30,
+        metaScore=55,
+        genres=["Comedy"],
+        directors=["Director A"],
+        dateReleased=date(2019, 8, 15),
+        creators=["Creator B"],
+        actors=["Actor C", "Actor D"],
+        description="Another test movie for testing",
+        duration=110
+    )
+
+    assert dm.createMovie(movie1) is True
+    assert dm.createMovie(movie2) is True
+    movies = dm.getMovies()
+
+    #make sure we have both movie objects
+    assert len(movies) == 2
+
+    titles = {movie.title for movie in movies}
+    assert titles == {"Test Movie", "Another Test Movie"}
+
+    #make sure they are movie instances
+    for m in movies:
+        assert isinstance(m, Movie)
 
 
+def testReviewManager():
+    review = ReviewManager.createReview(
+            movie="The Avengers",
+            reviewDate=datetime.now().date(),
+            reviewer="TESTUSER",
+            usefulnessVote=1,
+            totalVotes=2,
+            rating=3,
+            title="test review",
+            description="dest desc.")
+
+    review = ReviewManager.updateReview(
+        "The Avengers",
+        review,
+        title="updated title",
+        description="updated desc"
+    )
+    assert review.title == "updated title"
+    assert review.description == "updated desc"
+
+    result = ReviewManager.deleteReview("The Avengers", review)
+    assert result is True
+
+def testDataManagerReview():
+    dataMan = DataManager.getInstance()
+    reviewList = dataMan.readReviews("The Avengers")
+    
+    original_count = len(reviewList)
+    review =Review(
+        reviewDate=datetime.now().date(),
+        reviewer="TESTUSER",
+        usefulnessVote=1,
+        totalVotes=2,
+        rating=3,
+        title="test review",
+        description="dest desc."
+    )
 
 
+    reviewList.append(review)
+    dataMan.writeReviews("The Avengers", reviewList)
+
+    newList = dataMan.readReviews("The Avengers")
+    assert len(newList) == original_count + 1
+
+    newList.pop()
+    dataMan.writeReviews("The Avengers", newList)
 
 
