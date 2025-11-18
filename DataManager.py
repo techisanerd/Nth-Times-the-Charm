@@ -162,7 +162,7 @@ class DataManager():
     # get list of all movie objects in database
     def getMovies(self) -> list:
         movies = []
-        for file in self.moviesFolder.glob('*.json'):
+        for file in self.moviesFolder.glob('*/*.json'):
             with open(file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 movies.append(Movie.from_json(data))

@@ -94,8 +94,9 @@ def testSearchReviews():
 #3 tests for searchMovies by tag using Equivalence Partitioning
 def testSearchMoviesNoTag():
     foundMovies = MovieController.searchByTags()
-    movies = DataManager.getMovies()
-    assert list(set(movies)-set(foundMovies)) == []
+    dataMan = DataManager.getInstance()
+    movies = dataMan.getMovies()
+    assert len(movies)==len(foundMovies)
 
 def testSearchMoviesTag():
     foundMovies = MovieController.searchByTags(["Crime"])
