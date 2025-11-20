@@ -3,8 +3,7 @@ from fastapi import HTTPException
 from datetime import date
 from DataManager import DataManager
 from Managers import UserManager
-from Managers import ReviewManager
-from Managers import MovieManager
+from Managers import ReviewManager, MovieManager
 from Classes import Review
 from Classes import User
 
@@ -25,11 +24,11 @@ class ReviewController():
 
     def addReview(movie:str, username:str, rating:int, title:str,description:str):
         if(MovieManager.readMovie(movie) is None):
-            raise HTTPException(statuscode = 404, detail = "404 Movie not found")
+            raise HTTPException(status_code = 404, detail = "404 Movie not found")
         if(UserManager.readUser(username) is None):
-            raise HTTPException(statuscode = 404, detail = "404 User not found")
+            raise HTTPException(status_code = 404, detail = "404 User not found")
         if(rating >10 | rating <0):
-            raise HTTPException(statuscode = 400, detail = "400 Rating needs to be an integer between 0 and 10")
+            raise HTTPException(status_code = 400, detail = "400 Rating needs to be an integer between 0 and 10")
         reviewList = ReviewManager.readReview(movie,username) 
         reviewList = [r for r in reviewList if r.title == title]
         if (reviewList == []):
@@ -41,9 +40,9 @@ class ReviewController():
         reviewList = ReviewManager.readReview(movie,username) 
         reviewList = [r for r in reviewList if r.title == title]
         if(reviewList == []):
-            raise HTTPException(statuscode = 404, detail = "404 Review '{title}' not found")
+            raise HTTPException(status_code = 404, detail = "404 Review '{title}' not found")
         if(rating >10 | rating <0):
-            raise HTTPException(statuscode = 400, detail = "400 Rating needs to be an integer between 0 and 10")
+            raise HTTPException(status_code = 400, detail = "400 Rating needs to be an integer between 0 and 10")
         for r in reviewList:
             ReviewManager.updateReview(movie,r,date.now,username,0,0,rating,newTitle,description)
 
@@ -51,7 +50,7 @@ class ReviewController():
         reviewList = ReviewManager.readReview(movie,username) 
         reviewList = [r for r in reviewList if r.title == title]
         if(reviewList == []):
-            raise HTTPException(statuscode = 404, detail = "404 Review '{title}' not found")
+            raise HTTPException(status_code = 404, detail = "404 Review '{title}' not found")
         for r in reviewList:
             ReviewManager.deleteReview(movie, r)
 

@@ -9,7 +9,10 @@ from Controllers import MovieController
 from Classes import Review
 from datetime import date
 from fastapi import HTTPException
+<<<<<<< HEAD
+=======
 from Classes import Movie 
+>>>>>>> fb23cf8f2a30d5d323f34b3276a924f792caed9e
 from Managers import UserManager, ReviewManager
 from Classes import Movie, Review
 from pathlib import Path
