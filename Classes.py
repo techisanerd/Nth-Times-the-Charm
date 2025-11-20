@@ -48,6 +48,7 @@ class Movie():
         self.description = description
         self.duration = duration
 
+    @classmethod
     def from_json(cls, data:dict):
         return cls(
             title=data['title'],
