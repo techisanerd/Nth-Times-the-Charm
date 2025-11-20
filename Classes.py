@@ -1,5 +1,6 @@
 import datetime
-class User:
+from pydantic import BaseModel
+class User():
     #Creating a User object with all the same fields as in the UML
     def __init__(self, name:str, email:str, profilePic:str, passwordHash:str, auth):
         self.name = name
@@ -28,25 +29,22 @@ class Review():
     
 
 # def Movie:
-class Movie():
+class Movie(BaseModel):
+    title:str
+    rating:float
+    ratingCount:int
+    userReviews:str
+    criticReviews:int
+    metaScore:int
+    genres:list
+    directors:list
+    dateReleased:datetime.date
+    creators:list
+    actors:list
+    description:str
+    duration:int
 
-    def __init__(self, title:str, rating:float, ratingCount:int, userReviews:int, criticReviews:int,
-                 metaScore:int, genres:list, directors:list, dateReleased:datetime.date,
-                 creators:list, actors:list, description:str, duration:int):
 
-        self.title = title
-        self.rating = rating
-        self.ratingCount = ratingCount
-        self.userReviews = userReviews
-        self.criticReviews = criticReviews
-        self.metaScore = metaScore
-        self.genres = genres
-        self.directors = directors
-        self.dateReleased = dateReleased
-        self.creators = creators
-        self.actors = actors
-        self.description = description
-        self.duration = duration
 
     @classmethod
     def from_json(cls, data:dict):
@@ -65,4 +63,14 @@ class Movie():
             description=data['description'],
             duration=data['duration']
         )
+    
+class MovieCreate(BaseModel):
 
+    title:str
+    genres:list
+    directors:list
+    dateReleased:datetime.date
+    creators:list
+    actors:list
+    description:str
+    duration:int
