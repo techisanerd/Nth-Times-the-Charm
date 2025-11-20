@@ -204,6 +204,62 @@ def testDeleteNonExistentMovie(tempMoviesFolder):
     deleted = dm.deleteMovie("NonExistent Movie")
     assert deleted is False
 
+#test for getMovies
+def testGetMovies(tempMoviesFolder):
+    dm = tempMoviesFolder
+    
+    #create movie in folder for testing
+    folder1 = dm.moviesFolder / "Test_Movie1"
+    folder1.mkdir(parents=True, exist_ok=True)
+    metadata1 = folder1 / "metadata.json"
+
+    metadata1.write_text(json.dumps({
+        "title": "Test Movie1",
+        "movieIMDbRating": 6.5,
+        "totalRatingCount": 1000,
+        "totalUserReviews": 200,
+        "totalCriticReviews": 30,
+        "metaScore": 55,
+        "movieGenres": ["Action"],
+        "directors": ["Director1"],
+        "datePublished": "2019-03-15",
+        "creators": ["Creator1"],
+        "mainStars": ["Star1", "Star2"],
+        "description": "First test movie",
+        "duration": 110
+    }), encoding='utf-8')
+
+    #second movie
+    folder2 = dm.moviesFolder / "Test_Movie2"
+    folder2.mkdir(parents=True, exist_ok=True)
+    metadata2 = folder2 / "metadata.json"
+
+    metadata2.write_text(json.dumps({
+        "title": "Test Movie2",
+        "movieIMDbRating": 8.2,
+        "totalRatingCount": 2500,
+        "totalUserReviews": 500,
+        "totalCriticReviews": 80,
+        "metaScore": 75,
+        "movieGenres": ["Comedy"],
+        "directors": ["Director1"],
+        "datePublished": "2021-07-22",
+        "creators": ["Creator1"],
+        "mainStars": ["Star1", "Star1"],
+        "description": "Second test movie",
+        "duration": 95
+    }), encoding='utf-8')
+
+    movies = dm.getMovies()
+    assert len(movies) == 2
+    
+    #check if titles match
+    titles = {movie.title for movie in movies}
+    assert titles == {"Test Movie1", "Test Movie2"}
+    #make sure movies are movie objects
+    for movie in movies:
+        assert isinstance(movie, Movie)
+
 
 def testReviewManager():
     review = ReviewManager.createReview(
@@ -252,3 +308,5 @@ def testDataManagerReview():
 
     newList.pop()
     dataMan.writeReviews("The Avengers", newList)
+
+

@@ -162,12 +162,18 @@ class DataManager():
     # get list of all movie objects in database
     def getMovies(self) -> list:
         movies = []
-        for file in self.moviesFolder.glob('*.json'):
-            with open(file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                movies.append(Movie.from_json(data))
-        return movies
 
+        #look for subfolder inside movies folder
+        for folder in self.moviesFolder.iterdir():
+            if folder.is_dir():
+                metadataFile = folder / "metadata.json"
+                if metadataFile.exists():
+                    with open(metadataFile, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                        movies.append(Movie.from_json(data))
+
+        return movies
+    
     # get list of all reviews in database
     def getReviews(self) -> list:
         reviews = []
