@@ -145,37 +145,58 @@ def testDeleteNonExistentMovie(tempMoviesFolder):
 #test for getMovies
 def testGetMovies(tempMoviesFolder):
     dm = tempMoviesFolder
-    movie1 = sampleMovie()
+    
+    #create movie in folder for testing
+    folder1 = dm.moviesFolder / "Test_Movie1"
+    folder1.mkdir(parents=True, exist_ok=True)
+    metadata1 = folder1 / "metadata.json"
 
-    movie2 = Movie(
-        title="Another Test Movie",
-        rating=6.5,
-        ratingCount=800,
-        userReviews=150,
-        criticReviews=30,
-        metaScore=55,
-        genres=["Comedy"],
-        directors=["Director A"],
-        dateReleased=date(2019, 8, 15),
-        creators=["Creator B"],
-        actors=["Actor C", "Actor D"],
-        description="Another test movie for testing",
-        duration=110
-    )
+    metadata1.write_text(json.dumps({
+        "title": "Test Movie1",
+        "movieIMDbRating": 6.5,
+        "totalRatingCount": 1000,
+        "totalUserReviews": 200,
+        "totalCriticReviews": 30,
+        "metaScore": 55,
+        "movieGenres": ["Action"],
+        "directors": ["Director1"],
+        "datePublished": "2019-03-15",
+        "creators": ["Creator1"],
+        "mainStars": ["Star1", "Star2"],
+        "description": "First test movie",
+        "duration": 110
+    }), encoding='utf-8')
 
-    assert dm.createMovie(movie1) is True
-    assert dm.createMovie(movie2) is True
+    #second movie
+    folder2 = dm.moviesFolder / "Test_Movie2"
+    folder2.mkdir(parents=True, exist_ok=True)
+    metadata2 = folder2 / "metadata.json"
+
+    metadata2.write_text(json.dumps({
+        "title": "Test Movie2",
+        "movieIMDbRating": 8.2,
+        "totalRatingCount": 2500,
+        "totalUserReviews": 500,
+        "totalCriticReviews": 80,
+        "metaScore": 75,
+        "movieGenres": ["Comedy"],
+        "directors": ["Director1"],
+        "datePublished": "2021-07-22",
+        "creators": ["Creator1"],
+        "mainStars": ["Star1", "Star1"],
+        "description": "Second test movie",
+        "duration": 95
+    }), encoding='utf-8')
+
     movies = dm.getMovies()
-
-    #make sure we have both movie objects
     assert len(movies) == 2
-
+    
+    #check if titles match
     titles = {movie.title for movie in movies}
-    assert titles == {"Test Movie", "Another Test Movie"}
-
-    #make sure they are movie instances
-    for m in movies:
-        assert isinstance(m, Movie)
+    assert titles == {"Test Movie1", "Test Movie2"}
+    #make sure movies are movie objects
+    for movie in movies:
+        assert isinstance(movie, Movie)
 
 
 def testReviewManager():
