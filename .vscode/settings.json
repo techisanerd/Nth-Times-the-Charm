@@ -1,4 +1,10 @@
 {
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+    "python.REPL.enableREPLSmartSend": false
+=======
+>>>>>>> fb23cf8f2a30d5d323f34b3276a924f792caed9e
     "python-envs.pythonProjects": [
         {
             "path": "__pycache__",
@@ -15,4 +21,8 @@
     ],
     "python.testing.pytestEnabled": false,
     "python.testing.unittestEnabled": true
+<<<<<<< HEAD
+=======
+>>>>>>> 63e2566916ede55dab47de57259445378c2ab8de
+>>>>>>> fb23cf8f2a30d5d323f34b3276a924f792caed9e
 }

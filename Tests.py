@@ -5,9 +5,14 @@ from DataManager import DataManager
 from Managers import UserManager
 from Controllers import UserController
 from Controllers import ReviewController
+from Controllers import MovieController
 from Classes import Review
 from datetime import date
 from fastapi import HTTPException
+<<<<<<< HEAD
+=======
+from Classes import Movie 
+>>>>>>> fb23cf8f2a30d5d323f34b3276a924f792caed9e
 from Managers import UserManager, ReviewManager
 from Classes import Movie, Review
 from pathlib import Path
@@ -88,6 +93,27 @@ def testSearchReviews():
     for r in reviewList:
         reviewTitles.append(r.title)
     assert "hi" in reviewTitles and "no" not in reviewTitles
+
+#3 tests for searchMovies by tag using Equivalence Partitioning
+def testSearchMoviesNoTag():
+    foundMovies = MovieController.searchByTags()
+    dataMan = DataManager.getInstance()
+    movies = dataMan.getMovies()
+    assert len(movies)==len(foundMovies)
+
+def testSearchMoviesTag():
+    foundMovies = MovieController.searchByTags(["Crime"])
+    movieTitles = []
+    for m in foundMovies:
+        movieTitles.append(m.title)
+    assert "Joker" in movieTitles and "Forrest Gump" not in movieTitles #Note: joker has crime tag while forrest gump does not
+
+def testSearchMultipleTagsMovies():
+    foundMovies = MovieController.searchByTags(["Action","Fantasy"])
+    movieTitles = []
+    for m in foundMovies:
+        movieTitles.append(m.title)
+    assert "SpiderMan No Way Home" in movieTitles and "Morbius" not in movieTitles #Note: spiderman has both tags but morbius only has one
 #tests for movie manager functions
 
 #create temp movie directory for testing 

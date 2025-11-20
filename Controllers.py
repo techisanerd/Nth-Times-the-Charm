@@ -62,6 +62,40 @@ class ReviewController():
                 foundReviews.append(r)
         return foundReviews
 
+class MovieController():
+    
+    def searchByTags(tags:list=[]):
+        movies = MovieManager.getMovies()
+        if(len(tags)==0):
+            return movies
+        foundMovies = []
+        for t in tags:
+            for m in movies:
+                if (t in m.genres or t in m.directors or t in m.creators or t in m.actors):
+                    foundMovies.append(m)
+                else:
+                    if(m in foundMovies):
+                        foundMovies.remove(m)
+        return foundMovies
 
-
-        
+    def searchByName(search:str):
+        movies = MovieManager.getMovies()
+        if(search == []):
+            return movies
+        foundMovies = []
+        for m in movies:
+            if (search.toLower() in movies.title.toLower()):
+                foundMovies.append
+        return foundMovies
+    
+    def getAllTags():
+        tags = []
+        movies = MovieManager.getMovies()
+        for m in movies:
+            tags += m.genres
+            tags += m.directors
+            tags += m.creators
+            tags += m.actors
+        tags = set(tags)
+        return tags
+     
