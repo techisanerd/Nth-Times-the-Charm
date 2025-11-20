@@ -9,10 +9,7 @@ from Controllers import MovieController
 from Classes import Review
 from datetime import date
 from fastapi import HTTPException
-<<<<<<< HEAD
-=======
 from Classes import Movie 
->>>>>>> fb23cf8f2a30d5d323f34b3276a924f792caed9e
 from Managers import UserManager, ReviewManager
 from Classes import Movie, Review
 from pathlib import Path
@@ -69,27 +66,33 @@ def testAddReviewInvalidMovie():
     assert "Movie not found" in str(HTTPError.value)
 
 def testAddReviewInvalidRating():
+    UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","PlainTextPassword")
     with pytest.raises(HTTPException) as HTTPError:
-        UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","PlainTextPassword")
         ReviewController.addReview("Joker","TestUser",11,"hi","hi")
-        UserManager.deleteUser("TestUser")
+    UserManager.deleteUser("TestUser")
     assert "Rating needs to be an integer between 0 and 10" in str(HTTPError.value)
 
 def testEditReview():
+    UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","PlainTextPassword")
     ReviewController.addReview("Joker","TestUser",7,"hi","hi")
     ReviewController.editReview("Joker","TestUser",7,"hi","NEW TITLE","NEW DESCRIPTION")
+    UserManager.deleteUser("TestUser")
     reviewList = ReviewManager.readReview("Joker","TestUser")
     for r in reviewList:
         assert r.title == "NEW TITLE" and r.description == "NEW DESCRIPTION"
         ReviewController.removeReview("Joker","TestUser","NEW TITLE")
 
 def testSearchReviews():
+    UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","PlainTextPassword")
+    UserController.createUser("TestUser2","mail@example.com","https://profilepic.example.com","PlainTextPassword")
     ReviewController.addReview("Joker","TestUser",7,"hi","hi")
     ReviewController.addReview("Joker","TestUser2",7,"no","hi")
-    reviewList = ReviewController.searchByName("H")
+    reviewList = ReviewController.searchByName("Joker","H")
     reviewTitles = []
     ReviewController.removeReview("Joker","TestUser","hi")
     ReviewController.removeReview("Joker","TestUser2","no")
+    UserManager.deleteUser("TestUser")
+    UserManager.deleteUser("TestUser2")
     for r in reviewList:
         reviewTitles.append(r.title)
     assert "hi" in reviewTitles and "no" not in reviewTitles
@@ -132,7 +135,7 @@ def sampleMovie():
         title="Test Movie",
         rating=7.5,
         ratingCount=1500,
-        userReviews=300,
+        userReviews="300",
         criticReviews=50,
         metaScore=65,
         genres=["Drama", "Thriller"],
@@ -161,7 +164,7 @@ def testCreateMovie(tempMoviesFolder):
     assert data["title"] == "Test Movie"
     assert data["movieIMDbRating"] == 7.5
     assert data["totalRatingCount"] == 1500
-    assert data["totalUserReviews"] == 300
+    assert data["totalUserReviews"] == "300"
     assert data["totalCriticReviews"] == 50
     assert data["metaScore"] == 65
     assert data["movieGenres"] == ["Drama", "Thriller"]
@@ -243,7 +246,7 @@ def testGetMovies(tempMoviesFolder):
         "title": "Test Movie1",
         "movieIMDbRating": 6.5,
         "totalRatingCount": 1000,
-        "totalUserReviews": 200,
+        "totalUserReviews": "200",
         "totalCriticReviews": 30,
         "metaScore": 55,
         "movieGenres": ["Action"],
@@ -264,7 +267,7 @@ def testGetMovies(tempMoviesFolder):
         "title": "Test Movie2",
         "movieIMDbRating": 8.2,
         "totalRatingCount": 2500,
-        "totalUserReviews": 500,
+        "totalUserReviews": "500",
         "totalCriticReviews": 80,
         "metaScore": 75,
         "movieGenres": ["Comedy"],

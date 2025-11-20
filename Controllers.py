@@ -1,6 +1,6 @@
 import hashlib
 from fastapi import HTTPException
-from datetime import date
+from datetime import datetime
 from DataManager import DataManager
 from Managers import UserManager
 from Managers import ReviewManager, MovieManager
@@ -27,12 +27,12 @@ class ReviewController():
             raise HTTPException(status_code = 404, detail = "404 Movie not found")
         if(UserManager.readUser(username) is None):
             raise HTTPException(status_code = 404, detail = "404 User not found")
-        if(rating >10 | rating <0):
+        if(rating >10 or rating <0):
             raise HTTPException(status_code = 400, detail = "400 Rating needs to be an integer between 0 and 10")
         reviewList = ReviewManager.readReview(movie,username) 
         reviewList = [r for r in reviewList if r.title == title]
         if (reviewList == []):
-            UserManager.createReview(movie, date.today, username,0,0,rating,title,description)
+            ReviewManager.createReview(movie, datetime.now().date(), username,0,0,rating,title,description)
         else:
             raise HTTPException(status_code=409, detail="409 Review with this username and title already exists for this movie")
     
@@ -44,7 +44,7 @@ class ReviewController():
         if(rating >10 | rating <0):
             raise HTTPException(status_code = 400, detail = "400 Rating needs to be an integer between 0 and 10")
         for r in reviewList:
-            ReviewManager.updateReview(movie,r,date.now,username,0,0,rating,newTitle,description)
+            ReviewManager.updateReview(movie,r,datetime.now().date(),username,0,0,rating,newTitle,description)
 
     def removeReview(movie:str, username:str,title:str):
         reviewList = ReviewManager.readReview(movie,username) 
@@ -54,11 +54,11 @@ class ReviewController():
         for r in reviewList:
             ReviewManager.deleteReview(movie, r)
 
-    def searchByName(title:str):
-        reviews = DataManager.getReviews()
+    def searchByName(movie:str,title:str):
+        reviews = ReviewManager.getReviews(movie)
         foundReviews = []
         for r in reviews:
-            if (title.toLower() in r.title.toLower()):
+            if (title.lower() in r.title.lower()):
                 foundReviews.append(r)
         return foundReviews
 
