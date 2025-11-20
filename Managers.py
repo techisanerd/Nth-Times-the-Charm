@@ -16,6 +16,12 @@ class UserManager():
     def getUsers() -> list[User]:
         dataMan = DataManager.getInstance()
         return dataMan.getUsers()
+    
+    def writeUserToData(user:User):
+        dataMan = DataManager.getInstance()
+        userList = dataMan.getUsers()
+        userList.append(user)
+        dataMan.writeUsers(userList)
 
 
     def createUser(name:str, email:str, profilePic:str, passwordHash:str, auth=None) -> User | None:
@@ -23,11 +29,9 @@ class UserManager():
         if UserManager.readUser(name) is not None:
             return None            
 
-        dataMan = DataManager.getInstance()
-        userList = dataMan.getUsers()
+        
         user = User(name, email, profilePic, passwordHash, auth)
-        userList.append(user)
-        dataMan.writeUsers(userList)
+        UserManager.writeUserToData(user)
         return user
 
 
@@ -45,10 +49,7 @@ class UserManager():
         if auth is not None:
             user.auth = auth 
 
-        dataMan = DataManager.getInstance()
-        userList = dataMan.getUsers()
-        userList.append(user)
-        dataMan.writeUsers(userList)
+        UserManager.writeUserToData(user)
         
         return user
 
