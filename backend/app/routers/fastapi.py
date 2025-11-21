@@ -18,22 +18,10 @@ def get_movies():
 def get_movie(movie_title: str):
     return MovieManager.readMovie(movie_title)
 
-@routerMovie.post("", response_model=Movie, status_code=201)
-def post_movie(payload:MovieCreate):
-    return MovieManager.createMovie(payload)
-
-@routerMovie.delete("/{movie_title}", status_code=status.HTTP_204_NO_CONTENT)
-def remove_item(movieTitle: str):
-    MovieManager.deleteMovie(movieTitle)
-    return None
-
-@routerMovie.put("/{movie_title}", response_model=None)
-def put_item(movie_title: str, payload:MovieCreate):
-    return MovieManager.updateMovie(movie_title, payload)
 
 routerReview = APIRouter(prefix="/Reviews", tags=["Reviews"])
 
-#TODO: Add review endpoints
+
 @routerReview.get("/{movie_title}",response_model = List[Review])
 def get_reviews(movie_title:str):
     return ReviewManager.getReviews(movie_title)
