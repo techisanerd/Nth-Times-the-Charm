@@ -1,6 +1,6 @@
 from Classes import *
 from pathlib import Path
-
+from datetime import datetime
 import json, os, csv
 
 class DataManager():
@@ -19,63 +19,40 @@ class DataManager():
         if cls.__instance == None:
             cls.__instance = cls.__new__(cls)
         return cls.__instance
-
-    def createReview(self, review:Review) -> bool:
-        filepath = f"{review.title.replace(' ', '_')}.csv"
-        filepath = self.moviesFolder / filepath
-
-        # prevent overwriting exisiting review files
-        if filepath.exists():
-            return False
-        
-        data = {
-            "reviewDate": review.reviewDate,
-            "reviewer": review.reviewer,
-            "usefullnessVote": review.usefullnessVote,
-            "totalVotes": review.totalVotes,
-            "rating": review.rating,
-            "title": review.title,
-            "description": review.description,
-        }
-
-        # write review data to csv file
-        with open(filepath, 'w', encoding='utf-8') as f:
-            csv.dump(data, f, indent=4)   
-
-        return True
-
-    def readReview(self, filename:str):
-        filepath = self.moviesFolder / filename
-        with open(filepath, 'r', encoding='utf-8') as file:
-            data = csv.load(file)
-            return Review.from_csv(data)
     
-    def updateReview(self, review:Review) -> bool:
-        filename = f"{review.title.replace(' ', '_')}.csv"
-        filepath = self.moviesFolder / filename
 
-        # check if review exists
-        if not filepath.exists():
-            return False
+    def readReviews(self, movie):
+        #todo factor out this string
+        with open('.\\Movies\\' + movie + '\\movieReviews.csv', mode ='r', newline='', encoding='utf8')as file:
+            reviewList = []
+            for lines in csv.reader(file):
+                if lines[0].startswith("Date of Review"):# skips the first (header) line of reviews
+                    continue
+                reviewDate = datetime.strptime(lines[0], "%d %B %Y").date()
+                reviewer = lines[1]
+                usefulnessVote = int(lines[2])
+                totalVotes = int(lines[3])
+                try:
+                    rating = int(lines[4])
+                except ValueError: # the data is messy and doesn't show this sometimes 
+                    rating = -1
+                title = lines[5]
+                description = lines[6]
+
+                review = Review(reviewDate, reviewer, usefulnessVote, totalVotes, rating, title, description)
+                reviewList.append(review)
+            return reviewList
+
+
+    def writeReviews(self, movie, reviewList):
+        with open('.\\Movies\\' + movie + '\\movieReviews.csv', mode ='w', newline='', encoding='utf8') as file:
+            writer = csv.writer(file)
+
+            for review in reviewList:
+                date = datetime.strftime(review.reviewDate, "%d %B %Y")
+                l = [date, review.reviewer, str(review.usefulnessVote), str(review.totalVotes), str(review.rating), review.title, review.description]
+                writer.writerow(l) 
         
-        data = {
-            "reviewDate": review.reviewDate,
-            "reviewer": review.reviewer,
-            "usefullnessVote": review.usefullnessVote,
-            "totalVotes": review.totalVotes,
-            "rating": review.rating,
-            "title": review.title,
-            "description": review.description,
-        }
-
-        # overwrite existing file with updated data
-        with open(filepath, 'w', encoding='utf-8') as f:
-            csv.dump(data, f, indent=4)
-
-        return True
-
-    def deleteReview():
-        pass
 
     def createMovie(self, movie: Movie) -> bool:
         filepath = f"{movie.title.replace(' ', '_')}.json"
@@ -185,12 +162,18 @@ class DataManager():
     # get list of all movie objects in database
     def getMovies(self) -> list:
         movies = []
-        for file in self.moviesFolder.glob('*.json'):
-            with open(file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                movies.append(Movie.from_json(data))
-        return movies
 
+        #look for subfolder inside movies folder
+        for folder in self.moviesFolder.iterdir():
+            if folder.is_dir():
+                metadataFile = folder / "metadata.json"
+                if metadataFile.exists():
+                    with open(metadataFile, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                        movies.append(Movie.from_json(data))
+
+        return movies
+    
     # get list of all reviews in database
     def getReviews(self) -> list:
         reviews = []

@@ -1,9 +1,20 @@
 import pytest
-import json, csv
-import datetime
+import json
+from datetime import datetime, date
 from DataManager import DataManager
 from Managers import UserManager
-from Classes import Movie, Review 
+from Controllers import UserController
+from Controllers import ReviewController
+from Controllers import MovieController
+from Classes import Review
+from datetime import date
+from fastapi import HTTPException
+<<<<<<< HEAD
+=======
+from Classes import Movie 
+>>>>>>> fb23cf8f2a30d5d323f34b3276a924f792caed9e
+from Managers import UserManager, ReviewManager
+from Classes import Movie, Review
 from pathlib import Path
 
 def testSingleton():
@@ -26,6 +37,83 @@ def testUpdateUser():
     UserManager.deleteUser("NEWTESTUSER")
     assert UserManager.readUser("TESTUSER") == None and v.name == "NEWTESTUSER"
 
+def testUserCreation():
+    UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","PlainTestPassword")
+    u = UserManager.readUser("TestUser")
+    hashPassword = UserController.hashPassword("PlainTestPassword").hexdigest()
+    UserManager.deleteUser("TestUser")
+    assert u.name == "TestUser" and u.email == "mail@example.com" and u.profilePic == "https://profilepic.example.com"
+    assert u.passwordHash == hashPassword
+
+def testRepeatUsername():
+    UserManager.createUser("TestUser","mail@example.com","https://profilepic.example.com","0xabcdef")
+    with pytest.raises(HTTPException) as HTTPError:
+        UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","PlainTestPassword")
+    UserManager.deleteUser("TestUser")
+    assert "Username already in use" in str(HTTPError.value)
+
+def testTooShortPassword():
+    with pytest.raises(HTTPException) as HTTPError:
+        UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","tiny")
+    UserManager.deleteUser("TestUser")
+    assert "Password should be 8 or more characters" in str(HTTPError.value)
+
+def testAddReviewInvalidUser():
+    with pytest.raises(HTTPException) as HTTPError:
+        ReviewController.addReview("Joker","Non-Existant-User",0,"hi","hi")
+    assert "User not found" in str(HTTPError.value)
+
+def testAddReviewInvalidMovie():
+    with pytest.raises(HTTPException) as HTTPError:
+        ReviewController.addReview("Non-Existant-Movie","User",0,"hi","hi")
+    assert "Movie not found" in str(HTTPError.value)
+
+def testAddReviewInvalidRating():
+    with pytest.raises(HTTPException) as HTTPError:
+        UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","PlainTextPassword")
+        ReviewController.addReview("Joker","TestUser",11,"hi","hi")
+        UserManager.deleteUser("TestUser")
+    assert "Rating needs to be an integer between 0 and 10" in str(HTTPError.value)
+
+def testEditReview():
+    ReviewController.addReview("Joker","TestUser",7,"hi","hi")
+    ReviewController.editReview("Joker","TestUser",7,"hi","NEW TITLE","NEW DESCRIPTION")
+    reviewList = ReviewManager.readReview("Joker","TestUser")
+    for r in reviewList:
+        assert r.title == "NEW TITLE" and r.description == "NEW DESCRIPTION"
+        ReviewController.removeReview("Joker","TestUser","NEW TITLE")
+
+def testSearchReviews():
+    ReviewController.addReview("Joker","TestUser",7,"hi","hi")
+    ReviewController.addReview("Joker","TestUser2",7,"no","hi")
+    reviewList = ReviewController.searchByName("H")
+    reviewTitles = []
+    ReviewController.removeReview("Joker","TestUser","hi")
+    ReviewController.removeReview("Joker","TestUser2","no")
+    for r in reviewList:
+        reviewTitles.append(r.title)
+    assert "hi" in reviewTitles and "no" not in reviewTitles
+
+#3 tests for searchMovies by tag using Equivalence Partitioning
+def testSearchMoviesNoTag():
+    foundMovies = MovieController.searchByTags()
+    dataMan = DataManager.getInstance()
+    movies = dataMan.getMovies()
+    assert len(movies)==len(foundMovies)
+
+def testSearchMoviesTag():
+    foundMovies = MovieController.searchByTags(["Crime"])
+    movieTitles = []
+    for m in foundMovies:
+        movieTitles.append(m.title)
+    assert "Joker" in movieTitles and "Forrest Gump" not in movieTitles #Note: joker has crime tag while forrest gump does not
+
+def testSearchMultipleTagsMovies():
+    foundMovies = MovieController.searchByTags(["Action","Fantasy"])
+    movieTitles = []
+    for m in foundMovies:
+        movieTitles.append(m.title)
+    assert "SpiderMan No Way Home" in movieTitles and "Morbius" not in movieTitles #Note: spiderman has both tags but morbius only has one
 #tests for movie manager functions
 
 #create temp movie directory for testing 
@@ -49,7 +137,7 @@ def sampleMovie():
         metaScore=65,
         genres=["Drama", "Thriller"],
         directors=["Jane Doe"],
-        dateReleased=datetime.date(2020, 5, 20),
+        dateReleased=date(2020, 5, 20),
         creators=["John Smith"],
         actors=["Actor A", "Actor B"],
         description="A test movie for unit testing.",
@@ -142,69 +230,109 @@ def testDeleteNonExistentMovie(tempMoviesFolder):
     deleted = dm.deleteMovie("NonExistent Movie")
     assert deleted is False
 
-#tests for review manager functions
+#test for getMovies
+def testGetMovies(tempMoviesFolder):
+    dm = tempMoviesFolder
+    
+    #create movie in folder for testing
+    folder1 = dm.moviesFolder / "Test_Movie1"
+    folder1.mkdir(parents=True, exist_ok=True)
+    metadata1 = folder1 / "metadata.json"
 
-#review object for tests
-def sampleReview():
-    return Review(
-        reviewDate=datetime.date(2025, 11, 15),
-        reviewer="Jane Doe",
-        usefullnessVote=703,
-        totalVotes=1040,
-        rating=7.5,
-        title="Test review",
-        description="Good review here",
+    metadata1.write_text(json.dumps({
+        "title": "Test Movie1",
+        "movieIMDbRating": 6.5,
+        "totalRatingCount": 1000,
+        "totalUserReviews": 200,
+        "totalCriticReviews": 30,
+        "metaScore": 55,
+        "movieGenres": ["Action"],
+        "directors": ["Director1"],
+        "datePublished": "2019-03-15",
+        "creators": ["Creator1"],
+        "mainStars": ["Star1", "Star2"],
+        "description": "First test movie",
+        "duration": 110
+    }), encoding='utf-8')
+
+    #second movie
+    folder2 = dm.moviesFolder / "Test_Movie2"
+    folder2.mkdir(parents=True, exist_ok=True)
+    metadata2 = folder2 / "metadata.json"
+
+    metadata2.write_text(json.dumps({
+        "title": "Test Movie2",
+        "movieIMDbRating": 8.2,
+        "totalRatingCount": 2500,
+        "totalUserReviews": 500,
+        "totalCriticReviews": 80,
+        "metaScore": 75,
+        "movieGenres": ["Comedy"],
+        "directors": ["Director1"],
+        "datePublished": "2021-07-22",
+        "creators": ["Creator1"],
+        "mainStars": ["Star1", "Star1"],
+        "description": "Second test movie",
+        "duration": 95
+    }), encoding='utf-8')
+
+    movies = dm.getMovies()
+    assert len(movies) == 2
+    
+    #check if titles match
+    titles = {movie.title for movie in movies}
+    assert titles == {"Test Movie1", "Test Movie2"}
+    #make sure movies are movie objects
+    for movie in movies:
+        assert isinstance(movie, Movie)
+
+
+def testReviewManager():
+    review = ReviewManager.createReview(
+            movie="The Avengers",
+            reviewDate=datetime.now().date(),
+            reviewer="TESTUSER",
+            usefulnessVote=1,
+            totalVotes=2,
+            rating=3,
+            title="test review",
+            description="dest desc.")
+
+    review = ReviewManager.updateReview(
+        "The Avengers",
+        review,
+        title="updated title",
+        description="updated desc"
+    )
+    assert review.title == "updated title"
+    assert review.description == "updated desc"
+
+    result = ReviewManager.deleteReview("The Avengers", review)
+    assert result is True
+
+def testDataManagerReview():
+    dataMan = DataManager.getInstance()
+    reviewList = dataMan.readReviews("The Avengers")
+    
+    original_count = len(reviewList)
+    review =Review(
+        reviewDate=datetime.now().date(),
+        reviewer="TESTUSER",
+        usefulnessVote=1,
+        totalVotes=2,
+        rating=3,
+        title="test review",
+        description="dest desc."
     )
 
-def testCreateReview(tempMoviesFolder):
-    dm = tempMoviesFolder
-    review = sampleReview()
 
-    created = dm.createReview(review)
-    assert created is True
-    filepath = dm.moviesFolder / "Test_Review.csv"
-    assert filepath.exists()
+    reviewList.append(review)
+    dataMan.writeReviews("The Avengers", reviewList)
 
-    #check to see if data is correct
-    with open(filepath, 'r', encoding='utf-8') as f:
-        data = csv.load(f)
+    newList = dataMan.readReviews("The Avengers")
+    assert len(newList) == original_count + 1
 
-    assert data["reviewDate"] == datetime.date(2025, 11, 15)
-    assert data["reviewer"] == "Jane Doe"
-    assert data["usefullnessVote"] == 107
-    assert data["totalVotes"] == 1040
-    assert data["rating"] == 7.5
-    assert data["title"] == "Test review"
-    assert data["description"] == "Good review here"
-
-
-def testUpdateReview(tempMoviesFolder):
-    dm = tempMoviesFolder
-    review = sampleReview()
-    
-    created = dm.createReview(review)
-    assert created is True
-
-    #modify some attributes
-    review.rating = 7.0
-    review.description = "An updated test description for a review."
-    review.title = "Updated test review"
-
-    #update review file
-    updated = dm.updateReview(review)
-    assert updated is True
-    filepath = dm.moviesFolder / "Test_Review.csv"
-    assert filepath.exists()
-
-    #reload and verify
-    with open(filepath, 'r', encoding='utf-8') as f:
-        data = csv.load(f)
-
-    assert data["rating"] == 7.0
-    assert data["description"] == "An updated test description for a review."
-    assert data["title"] == "Updated test review"
-
-
-
+    newList.pop()
+    dataMan.writeReviews("The Avengers", newList)
 
 
