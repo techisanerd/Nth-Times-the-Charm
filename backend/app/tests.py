@@ -9,7 +9,7 @@ from datetime import datetime, date
 
 from managers.data_manager import DataManager
 from controllers.controllers import UserController, ReviewController, MovieController
-from managers.managers import UserManager, ReviewManager
+from managers.managers import UserManager, ReviewManager,MovieManager
 from schemas.classes import Movie, Review,Session
 from main import app
 
@@ -369,6 +369,44 @@ def testApiGetReview():
     "description": "The best movie for a separate character from a Marvel movie is a very funny movie even though the villain is frustrated. After you smashed Thor's hammer, you didn't do the big thing.",
     "reviewDate": "2020-10-12",
     } in response.json()
+
+def testApiGetMovies():
+    
+    client = TestClient(app)
+    response = client.get("/Movies")
+    assert response.status_code == 200
+    assert {"title": "SpiderMan No Way Home", 
+            "rating": 8.3, 
+            "ratingCount": 675951, 
+            "userReviews": "6K", 
+            "criticReviews": 396, 
+            "metaScore": 71, 
+            "genres": ["Action", "Adventure", "Fantasy"], 
+            "directors": ["Jon Watts"],
+            "dateReleased": "2021-12-17", 
+            "creators": ["Chris McKenna", "Erik Sommers", "Stan Lee"], 
+            "actors": ["Tom Holland", "Zendaya", "Benedict Cumberbatch"], 
+            "description": "With Spider-Man's identity now revealed, Peter asks Doctor Strange for help. When a spell goes wrong, dangerous foes from other worlds start to appear, forcing Peter to discover what it truly means to be Spider-Man.", 
+            "duration": 148} in response.json()
+    
+def testApiGetMovie():
+    
+    client = TestClient(app)
+    response = client.get("/Movies/SpiderMan No Way Home")
+    assert response.status_code == 200
+    assert {"title": "SpiderMan No Way Home", 
+            "rating": 8.3, 
+            "ratingCount": 675951, 
+            "userReviews": "6K", 
+            "criticReviews": 396, 
+            "metaScore": 71, 
+            "genres": ["Action", "Adventure", "Fantasy"], 
+            "directors": ["Jon Watts"],
+            "dateReleased": "2021-12-17", 
+            "creators": ["Chris McKenna", "Erik Sommers", "Stan Lee"], 
+            "actors": ["Tom Holland", "Zendaya", "Benedict Cumberbatch"], 
+            "description": "With Spider-Man's identity now revealed, Peter asks Doctor Strange for help. When a spell goes wrong, dangerous foes from other worlds start to appear, forcing Peter to discover what it truly means to be Spider-Man.", 
+            "duration": 148} == response.json()
 
 
 #session class testing

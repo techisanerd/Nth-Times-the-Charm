@@ -2,7 +2,7 @@ from fastapi import APIRouter, status, FastAPI
 from typing import List
 from controllers.controllers import ReviewController
 from managers.managers import MovieManager,ReviewManager
-from schemas.classes import Movie,Review
+from schemas.classes import Movie,Review,MovieCreate
 from fastapi import FastAPI
 
 
@@ -10,16 +10,16 @@ from fastapi import FastAPI
 
 routerMovie = APIRouter(prefix="/Movies", tags=["Movies"])
 
-@routerMovie.get("", response_model=List)
+@routerMovie.get("", response_model=List[Movie])
 def get_movies():
     return MovieManager.getMovies()
 
-@routerMovie.get("/{movie_title}", response_model=None)
-def get_movie(movieTitle: str):
-    return MovieManager.readMovie(movieTitle)
+@routerMovie.get("/{movie_title}", response_model=Movie)
+def get_movie(movie_title: str):
+    return MovieManager.readMovie(movie_title)
 
-@routerMovie.post("", response_model=None, status_code=201)
-def post_movie(payload):
+@routerMovie.post("", response_model=Movie, status_code=201)
+def post_movie(payload:MovieCreate):
     return MovieManager.createMovie(payload)
 
 @routerMovie.delete("/{movie_title}", status_code=status.HTTP_204_NO_CONTENT)
@@ -28,7 +28,7 @@ def remove_item(movieTitle: str):
     return None
 
 @routerMovie.put("/{movie_title}", response_model=None)
-def put_item(movie_title: str, payload):
+def put_item(movie_title: str, payload:MovieCreate):
     return MovieManager.updateMovie(movie_title, payload)
 
 routerReview = APIRouter(prefix="/Reviews", tags=["Reviews"])

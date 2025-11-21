@@ -94,7 +94,7 @@ class DataManager():
         return True  
 
     def readMovie(self, filename:str):
-        filepath = self.moviesFolder / filename
+        filepath = self.moviesFolder / filename / "metadata.json"
         with open(filepath, 'r', encoding='utf-8') as file:
             data = json.load(file)
             return Movie.from_json(data)

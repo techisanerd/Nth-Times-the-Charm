@@ -146,10 +146,9 @@ class MovieManager():
 
     def readMovie(title:str):
         dataMan = DataManager.getInstance()
-        filename = f"{title.replace(' ', '_')}/metadata.json"
 
         try:
-            return dataMan.readMovie(filename)
+            return dataMan.readMovie(title)
         except FileNotFoundError:
             return None
     
