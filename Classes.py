@@ -66,3 +66,30 @@ class Movie():
             duration=data['duration']
         )
 
+# session class
+# represents a logged in user session
+class Session:
+
+    def __init__(self, token: str, username: str, created: datetime.datetime):
+        self.token = token
+        self.username = username
+        self.created = created
+    
+    #to_dict to convert session object to be json friendly
+    def to_dict(self) -> dict:
+        return{
+            'token': self.token,
+            'username': self.username,
+            'created': self.created.isoformat()
+        }
+    
+    #from_dict to convert back to session object from json
+    @classmethod
+    def from_dict(cls, data: dict):
+        return cls(
+            token=data['token'],
+            username=data['username'],
+            created=datetime.datetime.fromisoformat(data['created'])
+        )
+
+   

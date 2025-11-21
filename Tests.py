@@ -5,6 +5,8 @@ from DataManager import DataManager
 from Managers import UserManager, ReviewManager
 from Classes import Movie, Review
 from pathlib import Path
+from Classes import Session
+import datetime
 
 def testSingleton():
     """Testing that we only get one instance of DataManager"""
@@ -248,3 +250,38 @@ def testDataManagerReview():
     dataMan.writeReviews("The Avengers", newList)
 
 
+#session class testing
+
+#test session
+def testSession():
+    now = datetime.datetime.now()
+    s = Session("abcd1234", "bob", now)
+
+    assert s.token == "abcd1234"
+    assert s.username == "bob"
+    assert s.created == now
+
+#test to dict
+def testSessionToDict():
+    now = datetime.datetime(2024, 6, 2, 12, 30, 0)
+    s = Session("abcd1234", "bob", now)
+
+    d = s.to_dict()
+
+    assert d["token"] == "abcd1234"
+    assert d["username"] == "bob"
+    assert d["created"] == "2024-06-02T12:30:00"
+
+#test from dict
+def testSessionFromDict():
+    data = {
+        "token": "abcd1234",
+        "username": "bob",
+        "created": "2024-06-02T12:30:00"
+    }
+
+    s = Session.from_dict(data)
+
+    assert s.token == "abcd1234"
+    assert s.username == "bob"
+    assert s.created == datetime.datetime(2024, 6, 2, 12, 30, 0)
