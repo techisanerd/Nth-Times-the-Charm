@@ -8,7 +8,6 @@ class DataManager():
     __instance = None
 
     dataFolder = Path(__file__).resolve().parent.parent / "data"
-    #moviesFolder is the path to the Movies folder
     moviesFolder = dataFolder / "Movies"
     userFile = dataFolder / "users.json"
     # this one is different as the path will need the movie name added in
@@ -20,7 +19,7 @@ class DataManager():
     def resetPath():
         dataFolder = Path(__file__).resolve().parent.parent / "data"
 
-    #this is how to instantiate the class
+
     @classmethod
     def getInstance(cls):
         if cls.__instance == None:
@@ -168,7 +167,7 @@ class DataManager():
     def deleteReport():
         pass
     
-    # get list of all movie objects in database
+
     def getMovies(self) -> list:
         movies = []
 
@@ -182,17 +181,8 @@ class DataManager():
                         movies.append(Movie.from_json(data))
 
         return movies
-    
-    # get list of all reviews in database
-    def getReviews(self) -> list:
-        reviews = []
-        for file in self.reviewFolder.glob():
-            with open(file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                reviews.append(Review.from_json(data))
-        return reviews
 
-    # get list of all users in database
+
         # get all reports in database
     def getReports():
         pass
