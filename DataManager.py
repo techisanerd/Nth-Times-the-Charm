@@ -39,12 +39,15 @@ class DataManager():
                 title = lines[5]
                 description = lines[6]
 
-                review = Review(reviewDate, reviewer, usefulnessVote, totalVotes, rating, title, description)
+                review = Review(reviewDate=reviewDate, reviewer =  reviewer, 
+                                usefulnessVote=usefulnessVote, totalVotes = totalVotes,
+                                rating=rating, title=title, description=description)
                 reviewList.append(review)
             return reviewList
 
 
     def writeReviews(self, movie, reviewList):
+
         with open('.\\Movies\\' + movie + '\\movieReviews.csv', mode ='w', newline='', encoding='utf8') as file:
             writer = csv.writer(file)
 

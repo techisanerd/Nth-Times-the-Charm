@@ -2,20 +2,16 @@ import pytest
 import json
 from datetime import datetime, date
 from DataManager import DataManager
-from Managers import UserManager
 from Controllers import UserController
 from Controllers import ReviewController
 from Controllers import MovieController
-from Classes import Review
-from datetime import date
 from fastapi import HTTPException
-<<<<<<< HEAD
-=======
-from Classes import Movie 
->>>>>>> fb23cf8f2a30d5d323f34b3276a924f792caed9e
+from fastapi.testclient import TestClient
+from FastApi import app
 from Managers import UserManager, ReviewManager
 from Classes import Movie, Review
 from pathlib import Path
+
 
 def testSingleton():
     """Testing that we only get one instance of DataManager"""
@@ -335,4 +331,19 @@ def testDataManagerReview():
     newList.pop()
     dataMan.writeReviews("The Avengers", newList)
 
+
+def testApiGetReview():
+    
+    client = TestClient(app)
+    response = client.get("/Reviews/Thor Ragnarok")
+    assert response.status_code == 200
+    assert {
+    "reviewDate": "2020-05-31",
+    "reviewer": "turagjubayer",
+    "usefulnessVote": 6,
+    "totalVotes": 9,
+    "rating": 9,
+    "title": "Good movie",
+    "description": "Brilliant movie.\r\nThis movie is related to avengers infinity war."
+    } in response.json()
 
