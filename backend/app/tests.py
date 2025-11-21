@@ -346,7 +346,7 @@ def testDataManagerReview():
 
 #test session
 def testSession():
-    now = datetime.datetime.now()
+    now = datetime.now()
     s = Session("abcd1234", "bob", now)
 
     assert s.token == "abcd1234"
@@ -355,7 +355,7 @@ def testSession():
 
 #test to dict
 def testSessionToDict():
-    now = datetime.datetime(2024, 6, 2, 12, 30, 0)
+    now = datetime(2024, 6, 2, 12, 30, 0)
     s = Session("abcd1234", "bob", now)
 
     d = s.to_dict()
@@ -376,4 +376,4 @@ def testSessionFromDict():
 
     assert s.token == "abcd1234"
     assert s.username == "bob"
-    assert s.created == datetime.datetime(2024, 6, 2, 12, 30, 0)
+    assert s.created == datetime(2024, 6, 2, 12, 30, 0)
