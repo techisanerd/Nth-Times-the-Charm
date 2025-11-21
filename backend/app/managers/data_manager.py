@@ -1,6 +1,7 @@
 from schemas.classes import Review, Movie, User
 from pathlib import Path
 from datetime import datetime
+import shutil
 import json, os, csv
 
 class DataManager():
@@ -129,14 +130,14 @@ class DataManager():
 
     def deleteMovie(self, title: str) -> bool:
         filename = f"{title.replace(' ', '_')}"
-        filepath = self.moviesFolder / filename / "metadata.json"
+        filepath = self.moviesFolder / filename
 
         # check if exists
         if not filepath.exists():
             return False
         
         #delete file
-        filepath.unlink()
+        shutil.rmtree(filepath)
         return True
     
     def getUsers(self):
