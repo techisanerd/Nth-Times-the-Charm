@@ -1,6 +1,7 @@
 from DataManager import DataManager
 from Classes import User, Movie, Review
 from datetime import datetime
+from pathlib import Path
 
 class UserManager():
     def readUser(name:str) -> User|None:
@@ -133,8 +134,6 @@ class MovieManager():
 
     def createMovie(movie:Movie):
         dataMan = DataManager.getInstance()
-        filename = f"{movie.title.replace(' ', '_')}.json"
-
         #check if exists 
         for m in dataMan.getMovies():
             if m.title == movie.title:

@@ -154,7 +154,8 @@ def testCreateMovie(tempMoviesFolder):
 
     created = dm.createMovie(movie)
     assert created is True
-    filepath = dm.moviesFolder / "Test_Movie.json"
+    folder1 = dm.moviesFolder / "Test_Movie"
+    filepath = folder1 / "metadata.json"
     assert filepath.exists()
 
     #check to see if data is correct
@@ -191,7 +192,8 @@ def testUpdateMovie(tempMoviesFolder):
     #update movie file
     updated = dm.updateMovie(movie)
     assert updated is True
-    filepath = dm.moviesFolder / "Test_Movie.json"
+    folder1 = dm.moviesFolder / "Test_Movie"
+    filepath = folder1 / "metadata.json"
     assert filepath.exists()
 
     #reload and verify
@@ -218,7 +220,8 @@ def testDeleteMovie(tempMoviesFolder):
     
     #create movie
     assert dm.createMovie(movie) is True
-    filepath = dm.moviesFolder / "Test_Movie.json"
+    folder1 = dm.moviesFolder / "Test_Movie"
+    filepath = folder1 / "metadata.json"
     assert filepath.exists()
 
     #delete it

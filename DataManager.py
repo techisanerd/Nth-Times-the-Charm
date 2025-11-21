@@ -55,9 +55,10 @@ class DataManager():
         
 
     def createMovie(self, movie: Movie) -> bool:
-        filepath = f"{movie.title.replace(' ', '_')}.json"
-        filepath = self.moviesFolder / filepath
-
+        filepath = f"{movie.title.replace(' ', '_')}"
+        folder= self.moviesFolder / filepath
+        folder.mkdir(parents=True, exist_ok=True)
+        filepath = folder / "metadata.json"
         # prevent overwriting exisiting movie files
         if filepath.exists():
             return False
@@ -91,8 +92,8 @@ class DataManager():
             return Movie.from_json(data)
     
     def updateMovie(self, movie:Movie) -> bool:
-        filename = f"{movie.title.replace(' ', '_')}.json"
-        filepath = self.moviesFolder / filename
+        filename = f"{movie.title.replace(' ', '_')}"
+        filepath = self.moviesFolder / filename / "metadata.json"
 
         # check if movie exists
         if not filepath.exists():
@@ -122,8 +123,8 @@ class DataManager():
         return True
 
     def deleteMovie(self, title: str) -> bool:
-        filename = f"{title.replace(' ', '_')}.json"
-        filepath = self.moviesFolder / filename
+        filename = f"{title.replace(' ', '_')}"
+        filepath = self.moviesFolder / filename / "metadata.json"
 
         # check if exists
         if not filepath.exists():
