@@ -1,4 +1,5 @@
 NthTimesTheCharm
 __pycache__
-__pycache__\
-.vscode
+__pycache__*
+venv*
+.pytest_cache*
