@@ -1,6 +1,7 @@
 from managers.data_manager import DataManager
 from schemas.classes import User, Movie, Review
 from datetime import datetime
+from pathlib import Path
 
 class UserManager():
     def readUser(name:str) -> User|None:
@@ -84,7 +85,7 @@ class ReviewManager():
         return foundList 
     
 
-    def updateReview(movie, review, reviewDate:datetime=None, reviewer=None, usefulnessVote:int=None, totalVotes:int=None, rating:int=None, 
+    def updateReview(movie, review, reviewDate:datetime.date=None, reviewer=None, usefulnessVote:int=None, totalVotes:int=None, rating:int=None, 
                  title:str=None, description:str=None) -> Review:
         ReviewManager.deleteReview(movie, review)
  
@@ -114,14 +115,16 @@ class ReviewManager():
         reviewList = dataMan.readReviews(movie)
         
         initialSize = len(reviewList)
-        reviewList = [r for r in reviewList if r.reviewer == review.reviewer and
-        r.title == review.title]
+        for r in reviewList:
+            if (r.reviewer == review.reviewer and r.title == review.title):
+                reviewList.remove(r)
+        dataMan.writeReviews(movie,reviewList)
         return initialSize > len(reviewList)
     
 
     def getReviews(movie):
         dataMan = DataManager.getInstance()
-        return dataMan.getReviews(movie)
+        return dataMan.readReviews(movie)
  
 class MovieManager():
     pass
@@ -131,8 +134,6 @@ class MovieManager():
 
     def createMovie(movie:Movie):
         dataMan = DataManager.getInstance()
-        filename = f"{movie.title.replace(' ', '_')}.json"
-
         #check if exists 
         for m in dataMan.getMovies():
             if m.title == movie.title:
@@ -143,7 +144,7 @@ class MovieManager():
 
     def readMovie(title:str):
         dataMan = DataManager.getInstance()
-        filename = f"{title.replace(' ', '_')}.json"
+        filename = f"{title.replace(' ', '_')}/metadata.json"
 
         try:
             return dataMan.readMovie(filename)
@@ -162,5 +163,3 @@ class MovieManager():
     def getMovies():
         dataMan = DataManager.getInstance()
         return dataMan.getMovies()
-
-    
