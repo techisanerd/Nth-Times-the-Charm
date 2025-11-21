@@ -4,7 +4,7 @@ from datetime import datetime
 from managers.data_manager import DataManager
 from managers.managers import UserManager
 from managers.managers import ReviewManager, MovieManager
-from schemas.classes import Review, User
+from schemas.classes import Review, User,ReviewCreate
 
 class UserController():
 
@@ -21,31 +21,42 @@ class UserController():
 
 class ReviewController():
 
-    def addReview(movie:str, username:str, rating:int, title:str,description:str):
+    def addReview(movie:str, payload:ReviewCreate):
+        if(MovieManager.readMovie(movie) is None):
+            raise HTTPException(status_code = 404, detail = "404 Movie not found")
+        if(UserManager.readUser(payload.reviewer) is None):
+            raise HTTPException(status_code = 404, detail = "404 User not found")
+        if(payload.rating >10 or payload.rating <0):
+            raise HTTPException(status_code = 400, detail = "400 Rating needs to be an integer between 0 and 10")
+        reviewList = ReviewManager.readReview(movie,payload.reviewer) 
+        reviewList = [r for r in reviewList if r.title == payload.title]
+        if (reviewList == []):
+            ReviewManager.createReview(movie, datetime.now().date(), payload.reviewer,0,0,payload.rating,
+                                       payload.title,payload.description)
+        else:
+            raise HTTPException(status_code=409, detail="409 Review with this username and title already exists for this movie")
+        return Review(reviewDate = datetime.now().date(),reviewer= payload.reviewer,
+                      usefulnessVote=0,totalVotes=0,rating =payload.rating,
+                      title = payload.title,description =payload.description)
+
+    def editReview(movie:str, currentTitle:str, payload:ReviewCreate):
+        """Note: put the current title of the review in currentTitle and the new one in the payload. 
+        Make sure the reviewer in the payload is the original reviewer"""
+        reviewList = ReviewManager.readReview(movie,payload.reviewer) 
+        reviewList = [r for r in reviewList if r.title == currentTitle]
+        if(reviewList == []):
+            raise HTTPException(status_code = 404, detail = f"404 Review '{currentTitle}' not found")
+        if(payload.rating >10 | payload.rating <0):
+            raise HTTPException(status_code = 400, detail = "400 Rating needs to be an integer between 0 and 10")
+        for r in reviewList:
+            ReviewManager.updateReview(movie,r,datetime.now().date(),payload.reviewer,0,0,
+                                       payload.rating,payload.title,payload.description)
+
+    def removeReview(movie:str, username:str,title:str):
         if(MovieManager.readMovie(movie) is None):
             raise HTTPException(status_code = 404, detail = "404 Movie not found")
         if(UserManager.readUser(username) is None):
             raise HTTPException(status_code = 404, detail = "404 User not found")
-        if(rating >10 or rating <0):
-            raise HTTPException(status_code = 400, detail = "400 Rating needs to be an integer between 0 and 10")
-        reviewList = ReviewManager.readReview(movie,username) 
-        reviewList = [r for r in reviewList if r.title == title]
-        if (reviewList == []):
-            ReviewManager.createReview(movie, datetime.now().date(), username,0,0,rating,title,description)
-        else:
-            raise HTTPException(status_code=409, detail="409 Review with this username and title already exists for this movie")
-    
-    def editReview(movie:str, username:str, rating:int, title:str, newTitle:str, description:str):
-        reviewList = ReviewManager.readReview(movie,username) 
-        reviewList = [r for r in reviewList if r.title == title]
-        if(reviewList == []):
-            raise HTTPException(status_code = 404, detail = "404 Review '{title}' not found")
-        if(rating >10 | rating <0):
-            raise HTTPException(status_code = 400, detail = "400 Rating needs to be an integer between 0 and 10")
-        for r in reviewList:
-            ReviewManager.updateReview(movie,r,datetime.now().date(),username,0,0,rating,newTitle,description)
-
-    def removeReview(movie:str, username:str,title:str):
         reviewList = ReviewManager.readReview(movie,username) 
         reviewList = [r for r in reviewList if r.title == title]
         if(reviewList == []):
@@ -57,6 +68,8 @@ class ReviewController():
         if(MovieManager.readMovie(movie) is None):
             raise HTTPException(status_code = 404, detail = "404 Movie not found")
         reviews = ReviewManager.getReviews(movie)
+        if(len(title)==0):
+            return reviews
         foundReviews = []
         for r in reviews:
             if (title.lower() in r.title.lower()):
