@@ -9,7 +9,7 @@ from datetime import datetime, date
 from managers.data_manager import DataManager
 from controllers.controllers import UserController, ReviewController, MovieController
 from managers.managers import UserManager, ReviewManager
-from schemas.classes import Movie, Review
+from schemas.classes import Movie, Review,Session
 
 originalMoviesFolder = " "
 
@@ -351,3 +351,38 @@ def testDataManagerReview():
     dataMan.writeReviews("The Avengers", newList)
 
 
+#session class testing
+
+#test session
+def testSession():
+    now = datetime.now()
+    s = Session("abcd1234", "bob", now)
+
+    assert s.token == "abcd1234"
+    assert s.username == "bob"
+    assert s.created == now
+
+#test to dict
+def testSessionToDict():
+    now = datetime(2024, 6, 2, 12, 30, 0)
+    s = Session("abcd1234", "bob", now)
+
+    d = s.to_dict()
+
+    assert d["token"] == "abcd1234"
+    assert d["username"] == "bob"
+    assert d["created"] == "2024-06-02T12:30:00"
+
+#test from dict
+def testSessionFromDict():
+    data = {
+        "token": "abcd1234",
+        "username": "bob",
+        "created": "2024-06-02T12:30:00"
+    }
+
+    s = Session.from_dict(data)
+
+    assert s.token == "abcd1234"
+    assert s.username == "bob"
+    assert s.created == datetime(2024, 6, 2, 12, 30, 0)
