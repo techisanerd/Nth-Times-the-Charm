@@ -42,15 +42,4 @@ def get_reviews(movie_title:str):
 #def get_review(review_search_title:str,movie_title:str):
     #return ReviewController.searchByName(review_search_title,movie_title)
 
-<<<<<<< HEAD:FastApi.py
-app = FastAPI()
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
-
-app.include_router(routerMovie)
-app.include_router(routerReview)
-
-=======
->>>>>>> 006378bec150a979b052e4ed79e427c04559fd5d:backend/app/routers/fastapi.py

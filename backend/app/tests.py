@@ -3,6 +3,7 @@ import json
 
 from datetime import date
 from fastapi import HTTPException
+from fastapi.testclient import TestClient
 from pathlib import Path
 from datetime import datetime, date
 
@@ -10,6 +11,7 @@ from managers.data_manager import DataManager
 from controllers.controllers import UserController, ReviewController, MovieController
 from managers.managers import UserManager, ReviewManager
 from schemas.classes import Movie, Review,Session
+from main import app
 
 originalMoviesFolder = " "
 
@@ -352,7 +354,7 @@ def testDataManagerReview():
     dataMan.writeReviews("The Avengers", newList)
 
 
-<<<<<<< HEAD:Tests.py
+
 def testApiGetReview():
     
     client = TestClient(app)
@@ -368,7 +370,7 @@ def testApiGetReview():
     "description": "Brilliant movie.\r\nThis movie is related to avengers infinity war."
     } in response.json()
 
-=======
+
 #session class testing
 
 #test session
@@ -404,4 +406,4 @@ def testSessionFromDict():
     assert s.token == "abcd1234"
     assert s.username == "bob"
     assert s.created == datetime(2024, 6, 2, 12, 30, 0)
->>>>>>> 006378bec150a979b052e4ed79e427c04559fd5d:backend/app/tests.py
+

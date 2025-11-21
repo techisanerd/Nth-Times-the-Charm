@@ -53,12 +53,7 @@ class DataManager():
 
 
     def writeReviews(self, movie, reviewList):
-<<<<<<< HEAD:DataManager.py
-
-        with open('.\\Movies\\' + movie + '\\movieReviews.csv', mode ='w', newline='', encoding='utf8') as file:
-=======
         with open(self.moviesFolder / movie / self.reviewFile, mode ='w', newline='', encoding='utf8') as file:
->>>>>>> 006378bec150a979b052e4ed79e427c04559fd5d:backend/app/managers/data_manager.py
             writer = csv.writer(file)
 
             for review in reviewList:
