@@ -1,4 +1,4 @@
-from schemas.classes import Review, Movie, User
+from schemas.classes import Review, Movie, User, Session
 from pathlib import Path
 from datetime import datetime
 import shutil
@@ -160,7 +160,38 @@ class DataManager():
     def createReport():
         pass
 
-    # get a user's session
+    #session functions
+
+    def _loadSession(self) -> list:
+        sessionFile = self.dataFolder / "sessions.json"
+
+        if not sessionFile.exists():
+            return []
+
+        with open(sessionFile, 'r', encoding="utf-8") as f:
+            dictList = json.load(f)
+            return [Session.from_dict(s) for s in dictList]
+
+    def _writeSession(self, session: list):
+        sessionFile = self.dataFolder / "sessions.json"
+
+        with open(sessionFile, 'w', encoding="utf-8") as f:
+            json.dump([s.to_dict() for s in session], f, indent=4)
+
+    def createSession(self, session: Session) -> bool:
+        sessions = self._loadSession()
+
+        for s in sessions:
+            if s.token == session.token:
+                return False
+            
+        sessions.append(session)
+        self._writeSession(sessions)
+        return True
+        
+    def deleteSession():
+        pass
+
     def getSession():
         pass
     
