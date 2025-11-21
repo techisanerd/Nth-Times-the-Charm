@@ -445,3 +445,79 @@ def testSessionFromDict():
     assert s.username == "bob"
     assert s.created == datetime(2024, 6, 2, 12, 30, 0)
 
+#temp folder for session testing
+@pytest.fixture
+def tempSessionFolder(tmp_path):
+    folder = tmp_path / "tempData"
+    folder.mkdir()
+
+    dm = DataManager.getInstance()
+    dm.dataFolder = folder
+
+    return dm
+
+def testLoadSession(tempSessionFolder):
+    dm = tempSessionFolder
+    
+    #no session file yet, so return empty list
+    sessions = dm._loadSession()
+    assert sessions == []
+
+    #create a session json file
+    data = [{
+        "token": "abcd1234",
+        "username": "bob",
+        "created": "2024-06-02T12:30:00"
+    }]
+    
+    sessionFile = dm.dataFolder / "sessions.json"
+    sessionFile.write_text(json.dumps(data), encoding="utf-8")
+
+    #load session object
+    sessions = dm._loadSession()
+    assert len(sessions) == 1
+    assert sessions[0].token == "abcd1234"
+    assert sessions[0].username == "bob"
+    assert sessions[0].created == datetime(2024, 6, 2, 12, 30, 0)
+
+def testWriteSession(tempSessionFolder):
+    dm = tempSessionFolder
+
+    #create a session object for testing
+    sess = Session(
+        token="xyz999",
+        username="alice",
+        created=datetime(2024, 5, 10, 9, 0, 0)
+    )
+    dm._writeSession([sess])
+
+    #read the file and verify
+    sessionFile = dm.dataFolder / "sessions.json"
+    assert sessionFile.exists()
+    data = json.loads(sessionFile.read_text(encoding="utf-8"))
+    assert len(data) == 1
+    assert data[0]["token"] == "xyz999"
+    assert data[0]["username"] == "alice"
+    assert data[0]["created"] == "2024-05-10T09:00:00"
+
+def test_createSession(tempSessionFolder):
+    dm = tempSessionFolder
+    s1 = Session("token123", "bob", datetime.now())
+    
+    #create session
+    created = dm.createSession(s1)
+    assert created is True
+
+    #make sure file contains 1 session
+    sessions = dm._loadSession()
+    assert len(sessions) == 1
+    assert sessions[0].token == "token123"
+
+    #duplicate session should return false
+    s2 = Session("token123", "bob", datetime.now())
+    created2 = dm.createSession(s2)
+    assert created2 is False
+
+    #file should still have only 1 session
+    sessions = dm._loadSession()
+    assert len(sessions) == 1
