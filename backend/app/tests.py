@@ -355,7 +355,7 @@ def testDataManagerReview():
 
 
 
-def testApiGetReview():
+def testApiGetReviews():
     
     client = TestClient(app)
     response = client.get("/Reviews/Thor Ragnarok")
@@ -369,6 +369,30 @@ def testApiGetReview():
     "description": "The best movie for a separate character from a Marvel movie is a very funny movie even though the villain is frustrated. After you smashed Thor's hammer, you didn't do the big thing.",
     "reviewDate": "2020-10-12",
     } in response.json()
+
+def testApiGetReview():
+    
+    client = TestClient(app)
+    response = client.get("/Reviews/Thor Ragnarok/rag")
+    assert response.status_code == 200
+    assert {
+    "reviewer": "auuwws",
+    "usefulnessVote": 22,
+    "totalVotes": 32,
+    "rating": 9,
+    "title": "Ragnarok",
+    "description": "The best movie for a separate character from a Marvel movie is a very funny movie even though the villain is frustrated. After you smashed Thor's hammer, you didn't do the big thing.",
+    "reviewDate": "2020-10-12",
+    } in response.json()
+    assert {
+        "reviewer": "twegienk-03403",
+        "usefulnessVote": 14,
+        "totalVotes": 24,
+        "rating": 3,
+        "title": "Everything was a pun",
+        "description": "I did not enjoy this film. The humor was out of place with the narrative. Everything was a set up for a pun or joke. Their home explodes and boom! Someone makes a joke.",
+        "reviewDate": "2021-02-25"
+    } not in response.json()
 
 
 #session class testing

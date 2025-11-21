@@ -38,8 +38,9 @@ routerReview = APIRouter(prefix="/Reviews", tags=["Reviews"])
 def get_reviews(movie_title:str):
     return ReviewManager.getReviews(movie_title)
 
-#@routerReview.get("/{movie_title}/{review_title}", response_model=Review)
-#def get_review(review_search_title:str,movie_title:str):
-    #return ReviewController.searchByName(review_search_title,movie_title)
+@routerReview.get("/{movie_title}/{review_search_title}", response_model=List[Review])
+def get_review(review_search_title:str,movie_title:str):
+    return ReviewController.searchByName(review_search_title,movie_title)
+
 
 
