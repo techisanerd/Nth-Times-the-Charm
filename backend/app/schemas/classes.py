@@ -4,10 +4,9 @@ class User(BaseModel):
     name:str
     email:str
     profilePic:str
-    paswordHash:str
+    passwordHash:str
     
-    @classmethod
-    def updatePassword():
+    def updatePassword(self):
         pass
 
 class Review(BaseModel):
