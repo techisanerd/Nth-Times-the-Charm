@@ -9,7 +9,7 @@ from datetime import datetime, date
 
 from managers.data_manager import DataManager
 from controllers.controllers import UserController, ReviewController, MovieController
-from managers.managers import UserManager, ReviewManager,MovieManager
+from managers.managers import UserManager, ReviewManager,MovieManager, SessionManager
 from schemas.classes import Movie, Review,Session,ReviewCreate
 from main import app
 
@@ -638,3 +638,59 @@ def testGetSessionCorruptFile(tempSessionFolder):
     #loading invalid session should return empty list
     sessions = dm._loadSession()
     assert sessions == []
+
+def testSessionManagerCreate(tempSessionFolder):
+    dm = tempSessionFolder  
+    t = datetime.now()
+    session = SessionManager.createSession("abc123", "bob", t)
+    assert session is not None
+    assert session.token == "abc123"
+    assert session.username == "bob"
+    assert session.created == t
+
+    stored = dm.getSession("abc123")
+    assert stored is not None
+    assert stored.token == "abc123"
+    assert stored.username == "bob"
+    assert stored.created == t
+
+def testSessionManagerPreventDuplicate(tempSessionFolder):
+    dm = tempSessionFolder
+    t = datetime.now()
+    SessionManager.createSession("abc123", "bob", t)
+    duplicate = SessionManager.createSession("abc123", "bob", t)
+    assert duplicate is None
+
+def testSessionManagerGetSession(tempSessionFolder):
+    dm = tempSessionFolder
+    t = datetime.now()
+    SessionManager.createSession("abc123", "bob", t)
+    session = SessionManager.getSession("abc123")
+
+    assert session is not None
+    assert session.token == "abc123"
+    assert session.username == "bob"
+    assert session.created == t
+
+def testSessionManagerGetMissing(tempSessionFolder):
+    dm = tempSessionFolder
+    session = SessionManager.getSession("mysterytoken")
+    assert session is None
+
+def testSessionManagerDeleteSession(tempSessionFolder):
+    dm = tempSessionFolder
+    t = datetime.now()
+    SessionManager.createSession("abc123", "bob", t)
+
+    deleted = SessionManager.deleteSession("abc123")
+    assert deleted is True
+
+    session = SessionManager.getSession("abc123")
+    assert session is None
+
+def testSessionManagerDeleteMissing(tempSessionFolder):
+    dm = tempSessionFolder
+    deleted = SessionManager.deleteSession("anotherfaketoken")
+    assert deleted is False
+
+
