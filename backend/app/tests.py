@@ -361,13 +361,13 @@ def testApiGetReview():
     response = client.get("/Reviews/Thor Ragnarok")
     assert response.status_code == 200
     assert {
-    "reviewDate": "2020-05-31",
-    "reviewer": "turagjubayer",
-    "usefulnessVote": 6,
-    "totalVotes": 9,
+    "reviewer": "auuwws",
+    "usefulnessVote": 22,
+    "totalVotes": 32,
     "rating": 9,
-    "title": "Good movie",
-    "description": "Brilliant movie.\r\nThis movie is related to avengers infinity war."
+    "title": "Ragnarok",
+    "description": "The best movie for a separate character from a Marvel movie is a very funny movie even though the villain is frustrated. After you smashed Thor's hammer, you didn't do the big thing.",
+    "reviewDate": "2020-10-12",
     } in response.json()
 
 
