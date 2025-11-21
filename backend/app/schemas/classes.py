@@ -6,7 +6,7 @@ class User(BaseModel):
     profilePic:str
     paswordHash:str
     
-
+    @classmethod
     def updatePassword():
         pass
 
