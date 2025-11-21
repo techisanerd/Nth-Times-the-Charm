@@ -5,7 +5,7 @@ class User(BaseModel):
     email:str
     profilePic:str
     paswordHash:str
-    auth:any
+    
 
     def updatePassword():
         pass
