@@ -67,7 +67,9 @@ class UserManager():
 class ReviewManager():
     def createReview(movie, reviewDate:datetime.date, reviewer, usefulnessVote:int, totalVotes:int, rating:int, 
                  title:str, description:str) -> Review | None:
-        review = Review(reviewDate, reviewer, usefulnessVote, totalVotes, rating, title, description)
+        review = Review(reviewDate=reviewDate, reviewer =  reviewer, 
+                                usefulnessVote=usefulnessVote, totalVotes = totalVotes,
+                                rating=rating, title=title, description=description)
         dataMan = DataManager.getInstance()
         reviewList = dataMan.readReviews(movie)
         reviewList.append(review)

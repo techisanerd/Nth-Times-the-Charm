@@ -1,4 +1,5 @@
 import datetime
+from pydantic import BaseModel
 class User:
     #Creating a User object with all the same fields as in the UML
     def __init__(self, name:str, email:str, profilePic:str, passwordHash:str, auth):
@@ -11,20 +12,20 @@ class User:
     def updatePassword():
         pass
 
-class Review():
+class Review(BaseModel):
+    reviewDate:datetime.date
+    reviewer:str
+    usefulnessVote:int
+    totalVotes:int
+    rating:int
+    title:str
+    description:str
 
-    #Creating a Review object with all the same fields as in the dataset
-    def __init__(self, reviewDate:datetime.date, reviewer, usefulnessVote:int, totalVotes:int, rating:int, 
-                 title:str, description:str): #note to self, make reviewer a User object
-        self.reviewDate = reviewDate
-        self.reviewer = reviewer
-        self.usefulnessVote = usefulnessVote
-        self.totalVotes = totalVotes
-        self.rating = rating
-        self.title = title
-        self.description = description
-    
-    
+class ReviewCreate(BaseModel):
+    reviewer:str
+    rating:int
+    title:str
+    description:str
     
 
 # def Movie:

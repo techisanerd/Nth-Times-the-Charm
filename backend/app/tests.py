@@ -3,6 +3,7 @@ import json
 
 from datetime import date
 from fastapi import HTTPException
+from fastapi.testclient import TestClient
 from pathlib import Path
 from datetime import datetime, date
 
@@ -10,8 +11,10 @@ from managers.data_manager import DataManager
 from controllers.controllers import UserController, ReviewController, MovieController
 from managers.managers import UserManager, ReviewManager
 from schemas.classes import Movie, Review,Session
+from main import app
 
 originalMoviesFolder = " "
+
 
 def testSingleton():
     """Testing that we only get one instance of DataManager"""
@@ -351,6 +354,23 @@ def testDataManagerReview():
     dataMan.writeReviews("The Avengers", newList)
 
 
+
+def testApiGetReview():
+    
+    client = TestClient(app)
+    response = client.get("/Reviews/Thor Ragnarok")
+    assert response.status_code == 200
+    assert {
+    "reviewer": "auuwws",
+    "usefulnessVote": 22,
+    "totalVotes": 32,
+    "rating": 9,
+    "title": "Ragnarok",
+    "description": "The best movie for a separate character from a Marvel movie is a very funny movie even though the villain is frustrated. After you smashed Thor's hammer, you didn't do the big thing.",
+    "reviewDate": "2020-10-12",
+    } in response.json()
+
+
 #session class testing
 
 #test session
@@ -386,3 +406,4 @@ def testSessionFromDict():
     assert s.token == "abcd1234"
     assert s.username == "bob"
     assert s.created == datetime(2024, 6, 2, 12, 30, 0)
+

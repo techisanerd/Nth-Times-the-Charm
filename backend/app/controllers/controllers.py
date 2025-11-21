@@ -54,6 +54,8 @@ class ReviewController():
             ReviewManager.deleteReview(movie, r)
 
     def searchByName(movie:str,title:str):
+        if(MovieManager.readMovie(movie) is None):
+            raise HTTPException(status_code = 404, detail = "404 Movie not found")
         reviews = ReviewManager.getReviews(movie)
         foundReviews = []
         for r in reviews:
