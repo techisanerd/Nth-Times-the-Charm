@@ -164,24 +164,23 @@ class DataManager():
 
     def _loadSession(self) -> list:
         sessionFile = self.dataFolder / "sessions.json"
-        #if no session exists, return an empty list
+
         if not sessionFile.exists():
             return []
-        #convert json dicts to session objects
+
         with open(sessionFile, 'r', encoding="utf-8") as f:
             dictList = json.load(f)
             return [Session.from_dict(s) for s in dictList]
 
     def _writeSession(self, session: list):
         sessionFile = self.dataFolder / "sessions.json"
-        #convert session objects to json dicts
+
         with open(sessionFile, 'w', encoding="utf-8") as f:
             json.dump([s.to_dict() for s in session], f, indent=4)
 
     def createSession(self, session: Session) -> bool:
         sessions = self._loadSession()
 
-        #check duplicates
         for s in sessions:
             if s.token == session.token:
                 return False
