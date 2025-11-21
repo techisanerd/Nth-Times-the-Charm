@@ -167,7 +167,7 @@ class DataManager():
 
         if not sessionFile.exists():
             return []
-        #convert json dicts to session objects, check for invalid file
+
         try:
             with open(sessionFile, 'r', encoding="utf-8") as f:
                 dictList = json.load(f)
@@ -197,22 +197,21 @@ class DataManager():
         sessions = self._loadSession()
         initialCount = len(sessions)
 
-        #find session with correct token and delete it
         sessions = [s for s in sessions if s.token != token]
-        #if no session found, return false
+
         if len(sessions) == initialCount:
             return False
-        #write updated sessions back to file
+
         self._writeSession(sessions)
         return True
 
     def getSession(self, token: str):
         sessions = self._loadSession()
-        #look for session with matching token
+
         for s in sessions:
             if s.token == token:
                 return s
-        #return none if not found
+
         return None
         
     
