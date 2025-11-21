@@ -10,7 +10,7 @@ from datetime import datetime, date
 from managers.data_manager import DataManager
 from controllers.controllers import UserController, ReviewController, MovieController
 from managers.managers import UserManager, ReviewManager,MovieManager
-from schemas.classes import Movie, Review,Session
+from schemas.classes import Movie, Review,Session,ReviewCreate
 from main import app
 
 originalMoviesFolder = " "
@@ -59,36 +59,44 @@ def testTooShortPassword():
 
 def testAddReviewInvalidUser():
     with pytest.raises(HTTPException) as HTTPError:
-        ReviewController.addReview("Joker","Non-Existant-User",0,"hi","hi")
+        payload = ReviewCreate(reviewer ="Non-Existant-User",rating = 7, title = "hi", description = "hi")
+        ReviewController.addReview("Joker",payload)
     assert "User not found" in str(HTTPError.value)
 
 def testAddReviewInvalidMovie():
     with pytest.raises(HTTPException) as HTTPError:
-        ReviewController.addReview("Non-Existant-Movie","User",0,"hi","hi")
+        payload = ReviewCreate(reviewer ="TestUser",rating = 7, title = "hi", description = "hi")
+        ReviewController.addReview("Non-Existant-Movie",payload)
     assert "Movie not found" in str(HTTPError.value)
 
 def testAddReviewInvalidRating():
     UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","PlainTextPassword")
     with pytest.raises(HTTPException) as HTTPError:
-        ReviewController.addReview("Joker","TestUser",11,"hi","hi")
+        payload = ReviewCreate(reviewer ="TestUser",rating = 11, title = "hi", description = "hi")
+        ReviewController.addReview("Joker",payload)
     UserManager.deleteUser("TestUser")
     assert "Rating needs to be an integer between 0 and 10" in str(HTTPError.value)
 
 def testEditReview():
     UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","PlainTextPassword")
-    ReviewController.addReview("Joker","TestUser",7,"hi","hi")
-    ReviewController.editReview("Joker","TestUser",7,"hi","NEW TITLE","NEW DESCRIPTION")
-    UserManager.deleteUser("TestUser")
+    payload = ReviewCreate(reviewer ="TestUser", rating = 7, title = "hi", description = "hi")
+    ReviewController.addReview("Joker",payload)
+    payload2 = ReviewCreate(reviewer ="TestUser", rating = 7, title = "NEW TITLE", description = "NEW DESCRIPTION")
+    ReviewController.editReview("Joker","hi",payload2)
+    
     reviewList = ReviewManager.readReview("Joker","TestUser")
     for r in reviewList:
         assert r.title == "NEW TITLE" and r.description == "NEW DESCRIPTION"
         ReviewController.removeReview("Joker","TestUser","NEW TITLE")
+    UserManager.deleteUser("TestUser")
 
 def testSearchReviews():
     UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","PlainTextPassword")
     UserController.createUser("TestUser2","mail@example.com","https://profilepic.example.com","PlainTextPassword")
-    ReviewController.addReview("Joker","TestUser",7,"hi","hi")
-    ReviewController.addReview("Joker","TestUser2",7,"no","hi")
+    payload = ReviewCreate(reviewer ="TestUser",rating = 7, title = "hi", description = "hi")
+    ReviewController.addReview("Joker",payload)
+    payload = ReviewCreate(reviewer ="TestUser2",rating = 7, title = "no", description = "hi")
+    ReviewController.addReview("Joker",payload)
     reviewList = ReviewController.searchByName("Joker","H")
     reviewTitles = []
     ReviewController.removeReview("Joker","TestUser","hi")
@@ -355,7 +363,7 @@ def testDataManagerReview():
 
 
 
-def testApiGetReview():
+def testApiGetReviews():
     
     client = TestClient(app)
     response = client.get("/Reviews/Thor Ragnarok")
@@ -369,6 +377,71 @@ def testApiGetReview():
     "description": "The best movie for a separate character from a Marvel movie is a very funny movie even though the villain is frustrated. After you smashed Thor's hammer, you didn't do the big thing.",
     "reviewDate": "2020-10-12",
     } in response.json()
+
+def testApiGetReview():
+    
+    client = TestClient(app)
+    response = client.get("/Reviews/Thor Ragnarok/rag")
+    assert response.status_code == 200
+    assert {
+    "reviewer": "auuwws",
+    "usefulnessVote": 22,
+    "totalVotes": 32,
+    "rating": 9,
+    "title": "Ragnarok",
+    "description": "The best movie for a separate character from a Marvel movie is a very funny movie even though the villain is frustrated. After you smashed Thor's hammer, you didn't do the big thing.",
+    "reviewDate": "2020-10-12",
+    } in response.json()
+    assert {
+        "reviewer": "twegienk-03403",
+        "usefulnessVote": 14,
+        "totalVotes": 24,
+        "rating": 3,
+        "title": "Everything was a pun",
+        "description": "I did not enjoy this film. The humor was out of place with the narrative. Everything was a set up for a pun or joke. Their home explodes and boom! Someone makes a joke.",
+        "reviewDate": "2021-02-25"
+    } not in response.json()
+
+def testApiGetReviewNoInput():
+    
+    client = TestClient(app)
+    response = client.get("/Reviews/Thor Ragnarok/")
+    assert response.status_code == 200
+    assert {
+    "reviewer": "auuwws",
+    "usefulnessVote": 22,
+    "totalVotes": 32,
+    "rating": 9,
+    "title": "Ragnarok",
+    "description": "The best movie for a separate character from a Marvel movie is a very funny movie even though the villain is frustrated. After you smashed Thor's hammer, you didn't do the big thing.",
+    "reviewDate": "2020-10-12",
+    } in response.json()
+
+def testApiPostDeleteReview():
+    UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","PlainTextPassword")
+    client = TestClient(app)
+    currentDate = datetime.now().date()
+    currentDate = currentDate.strftime("%Y-%m-%d")
+    response = client.post("/Reviews/Thor Ragnarok/", json = {
+  "reviewer": "TestUser",
+  "rating": 5,
+  "title": "hi",
+  "description": "this is a a test for api"
+})
+    assert response.status_code == 200
+    assert {
+  "reviewer": "TestUser",
+  "usefulnessVote": 0,
+  "totalVotes": 0,
+  "rating": 5,
+  "title": "hi",
+  "description": "this is a a test for api",
+  "reviewDate": f"{currentDate}",
+} == response.json()
+    
+    response = client.delete("/Reviews/Thor Ragnarok/TestUser/hi")
+    assert response.status_code == 204
+    UserManager.deleteUser("TestUser")
 
 def testApiGetMovies():
     
