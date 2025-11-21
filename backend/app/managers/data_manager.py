@@ -168,10 +168,14 @@ class DataManager():
         if not sessionFile.exists():
             return []
 
-        with open(sessionFile, 'r', encoding="utf-8") as f:
-            dictList = json.load(f)
-            return [Session.from_dict(s) for s in dictList]
-
+        try:
+            with open(sessionFile, 'r', encoding="utf-8") as f:
+                dictList = json.load(f)
+                return [Session.from_dict(s) for s in dictList]
+        except (json.JSONDecodeError, TypeError, ValueError):
+                #treat invalid file as empty session list
+            return []
+        
     def _writeSession(self, session: list):
         sessionFile = self.dataFolder / "sessions.json"
 
@@ -189,11 +193,27 @@ class DataManager():
         self._writeSession(sessions)
         return True
         
-    def deleteSession():
-        pass
+    def deleteSession(self, token: str) -> bool:
+        sessions = self._loadSession()
+        initialCount = len(sessions)
 
-    def getSession():
-        pass
+        sessions = [s for s in sessions if s.token != token]
+
+        if len(sessions) == initialCount:
+            return False
+
+        self._writeSession(sessions)
+        return True
+
+    def getSession(self, token: str):
+        sessions = self._loadSession()
+
+        for s in sessions:
+            if s.token == token:
+                return s
+
+        return None
+        
     
     def deleteReport():
         pass

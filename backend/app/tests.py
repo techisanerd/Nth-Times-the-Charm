@@ -532,11 +532,9 @@ def tempSessionFolder(tmp_path):
 def testLoadSession(tempSessionFolder):
     dm = tempSessionFolder
     
-    #no session file yet, so return empty list
     sessions = dm._loadSession()
     assert sessions == []
 
-    #create a session json file
     data = [{
         "token": "abcd1234",
         "username": "bob",
@@ -546,7 +544,6 @@ def testLoadSession(tempSessionFolder):
     sessionFile = dm.dataFolder / "sessions.json"
     sessionFile.write_text(json.dumps(data), encoding="utf-8")
 
-    #load session object
     sessions = dm._loadSession()
     assert len(sessions) == 1
     assert sessions[0].token == "abcd1234"
@@ -556,7 +553,6 @@ def testLoadSession(tempSessionFolder):
 def testWriteSession(tempSessionFolder):
     dm = tempSessionFolder
 
-    #create a session object for testing
     sess = Session(
         token="xyz999",
         username="alice",
@@ -564,7 +560,6 @@ def testWriteSession(tempSessionFolder):
     )
     dm._writeSession([sess])
 
-    #read the file and verify
     sessionFile = dm.dataFolder / "sessions.json"
     assert sessionFile.exists()
     data = json.loads(sessionFile.read_text(encoding="utf-8"))
@@ -573,24 +568,73 @@ def testWriteSession(tempSessionFolder):
     assert data[0]["username"] == "alice"
     assert data[0]["created"] == "2024-05-10T09:00:00"
 
-def test_createSession(tempSessionFolder):
+def testCreateSession(tempSessionFolder):
     dm = tempSessionFolder
     s1 = Session("token123", "bob", datetime.now())
     
-    #create session
     created = dm.createSession(s1)
     assert created is True
 
-    #make sure file contains 1 session
     sessions = dm._loadSession()
     assert len(sessions) == 1
     assert sessions[0].token == "token123"
 
-    #duplicate session should return false
     s2 = Session("token123", "bob", datetime.now())
     created2 = dm.createSession(s2)
     assert created2 is False
 
-    #file should still have only 1 session
     sessions = dm._loadSession()
     assert len(sessions) == 1
+
+def testGetSession(tempSessionFolder):
+    dm = tempSessionFolder
+    s = Session("token123", "bob", datetime(2024, 6, 1, 10, 0, 0))
+    dm.createSession(s)
+    found = dm.getSession("token123")
+
+    assert found is not None
+    assert found.token == "token123"
+    assert found.username == "bob"
+    assert found.created == datetime(2024, 6, 1, 10, 0, 0)
+
+def testGetSessionNoFile(tempSessionFolder):
+    dm = tempSessionFolder
+
+    result = dm.getSession("beeboop")
+    assert result is None
+
+def testDeleteSession(tempSessionFolder):
+    dm = tempSessionFolder
+    s1 = Session("token123", "bob", datetime.now())
+    s2 = Session("token456", "randal", datetime.now())
+    dm.createSession(s1)
+    dm.createSession(s2)
+
+    deleted = dm.deleteSession("token123")
+    assert deleted is True
+
+    remaining = dm._loadSession()
+    assert len(remaining) == 1
+    assert remaining[0].token == "token456"
+
+def testDeleteSessionNotFound(tempSessionFolder):
+    dm = tempSessionFolder
+    s = Session("token123", "bob", datetime.now())
+    dm.createSession(s)
+
+    deleted = dm.deleteSession("wahooooo")
+    assert deleted is False
+
+    sessions = dm._loadSession()
+    assert len(sessions) == 1
+    assert sessions[0].token == "token123"
+
+def testGetSessionCorruptFile(tempSessionFolder):
+    dm = tempSessionFolder
+    
+    badFile = dm.dataFolder / "sessions.json"
+    badFile.write_text("{.. wrong!", encoding="utf-8")
+
+    #loading invalid session should return empty list
+    sessions = dm._loadSession()
+    assert sessions == []
