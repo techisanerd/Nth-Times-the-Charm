@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status, FastAPI
 from typing import List
-from controllers.controllers import ReviewController
+from controllers.controllers import ReviewController,MovieController
 from managers.managers import MovieManager,ReviewManager
 from schemas.classes import Movie,Review,MovieCreate,ReviewCreate
 from fastapi import FastAPI
@@ -16,7 +16,7 @@ def get_movies():
 
 @routerMovie.get("/{movie_title}", response_model=Movie)
 def get_movie(movie_title: str):
-    return MovieManager.readMovie(movie_title)
+    return MovieController.getMovie(movie_title)
 
 
 routerReview = APIRouter(prefix="/Reviews", tags=["Reviews"])
