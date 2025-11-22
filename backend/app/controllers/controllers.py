@@ -1,4 +1,4 @@
-import hashlib
+import hashlib, bcrypt
 from fastapi import HTTPException
 from datetime import datetime
 from managers.data_manager import DataManager
@@ -18,6 +18,18 @@ class UserController():
     
     def hashPassword(passwordPlaintext:str) -> hashlib.sha224:
         return hashlib.sha224(passwordPlaintext.encode(), usedforsecurity= True)
+    
+    def updatePassword(self, new_password: str):
+        #Hash the new password and update the internal passwordHash.
+        if not isinstance(new_password, str) or len(new_password) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+
+        hashed = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt())
+        self.passwordHash = hashed.decode()
+        return True
+    
+    def verifyPassword(self, password: str) -> bool:
+        return bcrypt.checkpw(password.encode(), self.passwordHash.encode())
 
 class ReviewController():
 
