@@ -1,0 +1,15 @@
+Coverage Report:
+
+(NthTimesTheCharmVEnv) PS C:\Users\marga\Documents\Documents\NthTimesTheCharm\Nth-Times-the-Charm> coverage report -m  
+Name                                     Stmts   Miss  Cover   Missing  
+----------------------------------------------------------------------  
+backend\app\controllers\controllers.py     102     27    74%   24, 43, 54, 56, 63, 65, 69, 75, 78, 89, 107-114, 117-125  
+backend\app\main.py                          9      1    89%   8  
+backend\app\managers\data_manager.py       140      9    94%   17, 20, 35, 42-43, 71, 161, 219, 239  
+backend\app\managers\managers.py           120     15    88%   31, 45, 47, 49, 136-143, 154-156, 159-160  
+backend\app\routers\fastapi.py              40      1    98%   44  
+backend\app\schemas\classes.py              61      1    98%   10  
+backend\app\tests.py                       375      0   100%  
+----------------------------------------------------------------------  
+TOTAL                                      847     54    94%  
+  
