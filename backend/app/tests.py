@@ -54,7 +54,8 @@ def testRepeatUsername():
     assert "Username already in use" in str(HTTPError.value)
 
 def testUpdatePasswordSuccess():
-    UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","oldPassword")
+    user = User(name="TestUser",email="mail@example.com",profilePic="https://profilepic.example.com",passwordHash="oldPassword")
+    UserController.createUser(user)
     user = UserManager.readUser("TestUser")
     result = UserController.updatePassword(user, "newPassword")
     assert result is True
