@@ -510,7 +510,7 @@ def testApiUser():
   "name": "Test",
   "email": "test.Email",
   "profilePic": "testURL",
-  "passwordHash": "PlainTextPassWord"
+  "passwordHash": "PlainTextPassword"
 })
     assert response.status_code == 200
     assert {"name": "Test","profilePic": "testURL"} == response.json()

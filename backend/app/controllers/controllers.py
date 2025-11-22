@@ -1,4 +1,4 @@
-import hashlib, bcrypt
+import bcrypt
 from fastapi import HTTPException
 from datetime import datetime
 from managers.data_manager import DataManager
@@ -14,7 +14,7 @@ class UserController():
         if(len(payload.passwordHash)<8):
             raise HTTPException(status_code = 400, detail = "400 Password should be 8 or more characters")
         hashedPassword = UserController.hashPassword(payload.passwordHash)
-        UserManager.createUser(payload.name,payload.email,payload.profilePic,hashedPassword)
+        return UserManager.createUser(payload.name,payload.email,payload.profilePic,hashedPassword)
     
     def hashPassword(passwordPlaintext:str):
         hashed = bcrypt.hashpw(passwordPlaintext.encode(), bcrypt.gensalt())
