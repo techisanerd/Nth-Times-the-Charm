@@ -61,7 +61,7 @@ class ReviewController():
         if(payload.rating >10 | payload.rating <0):
             raise HTTPException(status_code = 400, detail = "400 Rating needs to be an integer between 0 and 10")
         for r in reviewList:
-            ReviewManager.updateReview(movie,r,datetime.now().date(),payload.reviewer,0,0,
+            return ReviewManager.updateReview(movie,r,datetime.now().date(),payload.reviewer,0,0,
                                        payload.rating,payload.title,payload.description)
 
     def removeReview(movie:str, username:str,title:str):

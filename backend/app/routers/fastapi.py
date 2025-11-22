@@ -39,9 +39,9 @@ def remove_item(movie_title: str,reviewer:str,review_title:str):
     ReviewController.removeReview(movie_title,reviewer,review_title)
     return None
 
-@routerReview.put("/{movie_title}/{reviewer}/{review_title}", response_model=Review)
-def put_item(movie_title: str, reviewer:str, review_title:str, payload:ReviewCreate):
-    return ReviewController.editReview(movie_title, reviewer, review_title, payload)
+@routerReview.put("/{movie_title}/{review_title}", response_model=Review)
+def put_item(movie_title: str, review_title:str, payload:ReviewCreate):
+    return ReviewController.editReview(movie_title, review_title, payload)
 
 
 routerUser = APIRouter(prefix="/Users", tags=["Users"])
