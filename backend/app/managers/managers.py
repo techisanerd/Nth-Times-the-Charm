@@ -171,12 +171,5 @@ class SessionManager():
         success = dm.createSession(session)
         return session if success else None
     
-    def getSession(token: str):
-        dm = DataManager.getInstance()
-        return dm.getSession(token)
-    
-    def deleteSession(token: str) -> bool:
-        dm = DataManager.getInstance()
-        return dm.deleteSession(token)
     
 

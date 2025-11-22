@@ -192,7 +192,8 @@ class DataManager():
         sessions.append(session)
         self._writeSession(sessions)
         return True
-        
+    
+       
     def deleteSession(self, token: str) -> bool:
         sessions = self._loadSession()
         initialCount = len(sessions)
@@ -212,8 +213,7 @@ class DataManager():
             if s.token == token:
                 return s
 
-        return None
-        
+        return None    
     
     def deleteReport():
         pass
