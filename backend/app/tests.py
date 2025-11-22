@@ -667,5 +667,3 @@ def testSessionManagerPreventDuplicate(tempSessionFolder):
     SessionManager.createSession("abc123", "bob", t)
     duplicate = SessionManager.createSession("abc123", "bob", t)
     assert duplicate is None
-
-
