@@ -1,4 +1,4 @@
-import hashlib
+import hashlib, bcrypt
 from fastapi import HTTPException
 from datetime import datetime
 from managers.data_manager import DataManager
@@ -24,6 +24,19 @@ class UserController():
             raise HTTPException(status_code = 404, detail = "404 User Not Found")
         return UserManager.readUser(username)
     
+    def updatePassword(user, new_password: str):
+        if user is None:
+            raise HTTPException(status_code=404, detail="404 User not found")
+        
+        if not isinstance(new_password, str) or len(new_password) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+
+        hashed = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt())
+        user.passwordHash = hashed.decode()
+        return True
+    
+    def verifyPassword(self, password: str) -> bool:
+        return bcrypt.checkpw(password.encode(), self.passwordHash.encode())
 
 class ReviewController():
 
