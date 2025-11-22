@@ -63,8 +63,8 @@ def testUpdatePasswordSuccess():
 def testHashChange():
     originalPassword = "MySecurePass123"
     newPassword = "MyNewSecurePass456"
-    originalHash = UserController.hashPassword(originalPassword).hexdigest()
-    newHash = UserController.hashPassword(newPassword).hexdigest()
+    originalHash = UserController.hashPassword(originalPassword)
+    newHash = UserController.hashPassword(newPassword)
     assert originalHash != newHash
 
 def testTooShortPassword():

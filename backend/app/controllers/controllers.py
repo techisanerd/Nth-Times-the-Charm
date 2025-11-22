@@ -13,10 +13,10 @@ class UserController():
             raise HTTPException(status_code = 400, detail = "400 Username already in use")
         if(len(payload.passwordHash)<8):
             raise HTTPException(status_code = 400, detail = "400 Password should be 8 or more characters")
-        hashedPassword = UserController.hashPassword(password)
-        UserManager.createUser(username,email,profilePic,hashedPassword)
+        hashedPassword = UserController.hashPassword(payload.passwordHash)
+        UserManager.createUser(payload.name,payload.email,payload.profilePic,hashedPassword)
     
-    def hashPassword(passwordPlaintext:str) -> hashlib.sha224:
+    def hashPassword(passwordPlaintext:str):
         hashed = bcrypt.hashpw(passwordPlaintext.encode(), bcrypt.gensalt())
         return hashed.decode()
     
