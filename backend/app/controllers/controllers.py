@@ -19,12 +19,15 @@ class UserController():
     def hashPassword(passwordPlaintext:str) -> hashlib.sha224:
         return hashlib.sha224(passwordPlaintext.encode(), usedforsecurity= True)
     
-    def updatePassword(self, new_password: str):
+    def updatePassword(user, new_password: str):
+        if user is None:
+            raise HTTPException(status_code=404, detail="404 User not found")
+        
         if not isinstance(new_password, str) or len(new_password) < 8:
             raise ValueError("Password must be at least 8 characters long")
 
         hashed = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt())
-        self.passwordHash = hashed.decode()
+        user.passwordHash = hashed.decode()
         return True
     
     def verifyPassword(self, password: str) -> bool:
