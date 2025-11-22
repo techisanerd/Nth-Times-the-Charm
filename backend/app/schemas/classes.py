@@ -7,6 +7,10 @@ class User(BaseModel):
     passwordHash:str
 
 
+class UserView(BaseModel):
+    name:str
+    profilePic:str
+
 class Review(BaseModel):
     reviewDate:datetime.date
     reviewer:str
