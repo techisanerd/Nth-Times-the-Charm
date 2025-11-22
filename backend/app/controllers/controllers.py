@@ -77,6 +77,11 @@ class ReviewController():
         return foundReviews
 
 class MovieController():
+
+    def getMovie(title):
+        if(MovieManager.readMovie(title) is None):
+            raise HTTPException(status_code = 404, detail = "404 Movie not found")
+        return MovieManager.readMovie(title)
     
     def searchByTags(tags:list=[]):
         movies = MovieManager.getMovies()
