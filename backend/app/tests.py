@@ -40,10 +40,9 @@ def testUserCreation():
     user = User(name="TestUser",email="mail@example.com",profilePic="https://profilepic.example.com",passwordHash="PlainTextPassword")
     UserController.createUser(user)
     u = UserManager.readUser("TestUser")
-    hashPassword = UserController.hashPassword("PlainTextPassword").hexdigest()
-    UserManager.deleteUser("TestUser")
     assert u.name == "TestUser" and u.email == "mail@example.com" and u.profilePic == "https://profilepic.example.com"
-    assert u.passwordHash == hashPassword
+    assert UserController.verifyPassword("TestUser","PlainTextPassword")
+    UserManager.deleteUser("TestUser")
 
 def testRepeatUsername():
     UserManager.createUser("TestUser","mail@example.com","https://profilepic.example.com","0xabcdef")
@@ -64,8 +63,8 @@ def testUpdatePasswordSuccess():
 def testHashChange():
     originalPassword = "MySecurePass123"
     newPassword = "MyNewSecurePass456"
-    originalHash = UserController.hashPassword(originalPassword).hexdigest()
-    newHash = UserController.hashPassword(newPassword).hexdigest()
+    originalHash = UserController.hashPassword(originalPassword)
+    newHash = UserController.hashPassword(newPassword)
     assert originalHash != newHash
 
 def testTooShortPassword():
@@ -511,7 +510,7 @@ def testApiUser():
   "name": "Test",
   "email": "test.Email",
   "profilePic": "testURL",
-  "passwordHash": "PlainTextPassWord"
+  "passwordHash": "PlainTextPassword"
 })
     assert response.status_code == 200
     assert {"name": "Test","profilePic": "testURL"} == response.json()

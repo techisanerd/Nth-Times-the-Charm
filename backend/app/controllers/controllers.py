@@ -1,4 +1,4 @@
-import hashlib, bcrypt
+import bcrypt
 from fastapi import HTTPException
 from datetime import datetime
 from managers.data_manager import DataManager
@@ -14,10 +14,11 @@ class UserController():
         if(len(payload.passwordHash)<8):
             raise HTTPException(status_code = 400, detail = "400 Password should be 8 or more characters")
         hashedPassword = UserController.hashPassword(payload.passwordHash)
-        return UserManager.createUser(payload.name,payload.email,payload.profilePic,hashedPassword.hexdigest())
+        return UserManager.createUser(payload.name,payload.email,payload.profilePic,hashedPassword)
     
-    def hashPassword(passwordPlaintext:str) -> hashlib.sha224:
-        return hashlib.sha224(passwordPlaintext.encode(), usedforsecurity= True)
+    def hashPassword(passwordPlaintext:str):
+        hashed = bcrypt.hashpw(passwordPlaintext.encode(), bcrypt.gensalt())
+        return hashed.decode()
     
     def getUser(username:str):
         if(UserManager.readUser(username)==None):
@@ -31,12 +32,12 @@ class UserController():
         if not isinstance(new_password, str) or len(new_password) < 8:
             raise ValueError("Password must be at least 8 characters long")
 
-        hashed = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt())
-        user.passwordHash = hashed.decode()
+        user.passwordHash = UserController.hashPassword(new_password)
         return True
     
-    def verifyPassword(self, password: str) -> bool:
-        return bcrypt.checkpw(password.encode(), self.passwordHash.encode())
+    def verifyPassword(user, password: str) -> bool:
+        user = UserManager.readUser(user)
+        return bcrypt.checkpw(password.encode(), user.passwordHash.encode())
 
 class ReviewController():
 
