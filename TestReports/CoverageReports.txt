@@ -1,4 +1,5 @@
-## Coverage Report
+Coverage Report:
+
 (NthTimesTheCharmVEnv) PS C:\Users\marga\Documents\Documents\NthTimesTheCharm\Nth-Times-the-Charm> coverage report -m  
 Name                                     Stmts   Miss  Cover   Missing  
 ----------------------------------------------------------------------  
@@ -11,5 +12,4 @@ backend\app\schemas\classes.py              61      1    98%   10
 backend\app\tests.py                       375      0   100%  
 ----------------------------------------------------------------------  
 TOTAL                                      847     54    94%  
-  
   
