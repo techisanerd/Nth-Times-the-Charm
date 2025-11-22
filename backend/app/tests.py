@@ -1,4 +1,4 @@
-import pytest
+import pytest, bcrypt
 import json
 
 from datetime import date
@@ -10,7 +10,7 @@ from datetime import datetime, date
 from managers.data_manager import DataManager
 from controllers.controllers import UserController, ReviewController, MovieController
 from managers.managers import UserManager, ReviewManager,MovieManager
-from schemas.classes import Movie, Review,Session,ReviewCreate
+from schemas.classes import Movie, Review,Session,ReviewCreate,User
 from main import app
 
 originalMoviesFolder = " "
@@ -50,6 +50,13 @@ def testRepeatUsername():
         UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","PlainTestPassword")
     UserManager.deleteUser("TestUser")
     assert "Username already in use" in str(HTTPError.value)
+
+def test_update_password_success():
+    user = User(name="Alice", email="a@example.com", profilePic="pic.jpg", passwordHash=bcrypt.hashpw(b"oldpass", bcrypt.gensalt()).decode())
+    result = user.updatePassword("newpassword123")
+    assert result is True
+    assert user.verifyPassword("newpassword123")
+    assert not user.verifyPassword("oldpass")
 
 def testTooShortPassword():
     with pytest.raises(HTTPException) as HTTPError:
