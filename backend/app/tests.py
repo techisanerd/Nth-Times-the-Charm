@@ -58,6 +58,13 @@ def testUpdatePasswordSuccess():
     assert result is True
     UserManager.deleteUser("TestUser")
 
+def testHashChange():
+    originalPassword = "MySecurePass123"
+    newPassword = "MyNewSecurePass456"
+    originalHash = UserController.hashPassword(originalPassword).hexdigest()
+    newHash = UserController.hashPassword(newPassword).hexdigest()
+    assert originalHash != newHash
+
 def testTooShortPassword():
     with pytest.raises(HTTPException) as HTTPError:
         UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","tiny")
