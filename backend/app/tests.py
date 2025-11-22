@@ -51,7 +51,7 @@ def testRepeatUsername():
     UserManager.deleteUser("TestUser")
     assert "Username already in use" in str(HTTPError.value)
 
-def test_update_password_success():
+def testUpdatePasswordSuccess():
     user = User(name="Alice", email="a@example.com", profilePic="pic.jpg", passwordHash=bcrypt.hashpw(b"oldpass", bcrypt.gensalt()).decode())
     result = user.updatePassword("newpassword123")
     assert result is True
