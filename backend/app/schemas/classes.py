@@ -5,9 +5,7 @@ class User(BaseModel):
     email:str
     profilePic:str
     passwordHash:str
-    
-    def updatePassword(self):
-        pass
+
 
 class Review(BaseModel):
     reviewDate:datetime.date
