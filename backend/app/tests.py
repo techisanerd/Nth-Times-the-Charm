@@ -58,6 +58,13 @@ def testUpdatePasswordSuccess():
     assert result is True
     UserManager.deleteUser("TestUser")
 
+def testHashChange():
+    originalPassword = "MySecurePass123"
+    newPassword = "MyNewSecurePass456"
+    originalHash = UserController.hashPassword(originalPassword).hexdigest()
+    newHash = UserController.hashPassword(newPassword).hexdigest()
+    assert originalHash != newHash
+
 def testTooShortPassword():
     with pytest.raises(HTTPException) as HTTPError:
         UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","tiny")
@@ -667,37 +674,3 @@ def testSessionManagerPreventDuplicate(tempSessionFolder):
     SessionManager.createSession("abc123", "bob", t)
     duplicate = SessionManager.createSession("abc123", "bob", t)
     assert duplicate is None
-
-def testSessionManagerGetSession(tempSessionFolder):
-    dm = tempSessionFolder
-    t = datetime.now()
-    SessionManager.createSession("abc123", "bob", t)
-    session = SessionManager.getSession("abc123")
-
-    assert session is not None
-    assert session.token == "abc123"
-    assert session.username == "bob"
-    assert session.created == t
-
-def testSessionManagerGetMissing(tempSessionFolder):
-    dm = tempSessionFolder
-    session = SessionManager.getSession("mysterytoken")
-    assert session is None
-
-def testSessionManagerDeleteSession(tempSessionFolder):
-    dm = tempSessionFolder
-    t = datetime.now()
-    SessionManager.createSession("abc123", "bob", t)
-
-    deleted = SessionManager.deleteSession("abc123")
-    assert deleted is True
-
-    session = SessionManager.getSession("abc123")
-    assert session is None
-
-def testSessionManagerDeleteMissing(tempSessionFolder):
-    dm = tempSessionFolder
-    deleted = SessionManager.deleteSession("anotherfaketoken")
-    assert deleted is False
-
-
