@@ -14,6 +14,9 @@ class User(BaseModel):
         hashed = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt())
         self.passwordHash = hashed.decode()
         return True
+    
+    def verifyPassword(self, password: str) -> bool:
+        return bcrypt.checkpw(password.encode(), self.passwordHash.encode())
 
 
 class Review(BaseModel):
