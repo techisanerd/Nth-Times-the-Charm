@@ -52,11 +52,11 @@ def testRepeatUsername():
     assert "Username already in use" in str(HTTPError.value)
 
 def testUpdatePasswordSuccess():
-    user = UserController.createUser("TestUser", "mail@example.com", "https://profilepic.example.com", bcrypt.hashpw(b"oldpass", bcrypt.gensalt()).decode())
-    result = user.updatePassword("newpassword123")
+    UserController.createUser("TestUser", "mail@example.com", "https://profilepic.example.com", bcrypt.hashpw(b"oldpass", bcrypt.gensalt()).decode())
+    result = UserController.updatePassword("newpassword123")
     assert result is True
-    assert user.verifyPassword("newpassword123")
-    assert not user.verifyPassword("oldpass")
+    assert UserController.verifyPassword("newpassword123")
+    assert not UserController.verifyPassword("oldpass")
 
 def testTooShortPassword():
     with pytest.raises(HTTPException) as HTTPError:
