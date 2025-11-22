@@ -37,11 +37,12 @@ def testUpdateUser():
     assert UserManager.readUser("TESTUSER") == None and v.name == "NEWTESTUSER"
 
 def testUserCreation():
-    UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","PlainTextPassword")
+    UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","PlainTestPassword")
     u = UserManager.readUser("TestUser")
-    assert u.name == "TestUser" and u.email == "mail@example.com" and u.profilePic == "https://profilepic.example.com"
-    assert UserController.verifyPassword("TestUser","PlainTextPassword")
+    hashPassword = UserController.hashPassword("PlainTestPassword").hexdigest()
     UserManager.deleteUser("TestUser")
+    assert u.name == "TestUser" and u.email == "mail@example.com" and u.profilePic == "https://profilepic.example.com"
+    assert u.passwordHash == hashPassword
 
 def testRepeatUsername():
     UserManager.createUser("TestUser","mail@example.com","https://profilepic.example.com","0xabcdef")

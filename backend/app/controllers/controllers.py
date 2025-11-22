@@ -14,11 +14,10 @@ class UserController():
         if(len(password)<8):
             raise HTTPException(status_code = 400, detail = "400 Password should be 8 or more characters")
         hashedPassword = UserController.hashPassword(password)
-        UserManager.createUser(username,email,profilePic,hashedPassword)
+        UserManager.createUser(username,email,profilePic,hashedPassword.hexdigest())
     
     def hashPassword(passwordPlaintext:str) -> hashlib.sha224:
-        hashed = bcrypt.hashpw(passwordPlaintext.encode(), bcrypt.gensalt())
-        return hashed.decode()
+        return hashlib.sha224(passwordPlaintext.encode(), usedforsecurity= True)
     
     def updatePassword(user, new_password: str):
         if user is None:
@@ -27,12 +26,12 @@ class UserController():
         if not isinstance(new_password, str) or len(new_password) < 8:
             raise ValueError("Password must be at least 8 characters long")
 
-        user.passwordHash = UserController.hashPassword(new_password)
+        hashed = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt())
+        user.passwordHash = hashed.decode()
         return True
     
-    def verifyPassword(user, password: str) -> bool:
-        user = UserManager.readUser(user)
-        return bcrypt.checkpw(password.encode(), user.passwordHash.encode())
+    def verifyPassword(self, password: str) -> bool:
+        return bcrypt.checkpw(password.encode(), self.passwordHash.encode())
 
 class ReviewController():
 
