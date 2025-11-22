@@ -41,28 +41,20 @@ class UserController():
 class ReviewController():
 
     def addReview(movie:str, payload:ReviewCreate):
-        if(MovieManager.readMovie(movie) is None):
-            raise HTTPException(status_code = 404, detail = "404 Movie not found")
+        reviewList = ReviewController.getReviewsByTitle(movie,payload.reviewer,payload.title)
         if(UserManager.readUser(payload.reviewer) is None):
             raise HTTPException(status_code = 404, detail = "404 User not found")
         if(payload.rating >10 or payload.rating <0):
             raise HTTPException(status_code = 400, detail = "400 Rating needs to be an integer between 0 and 10")
-        reviewList = ReviewManager.readReview(movie,payload.reviewer) 
-        reviewList = [r for r in reviewList if r.title == payload.title]
-        if (reviewList == []):
-            ReviewManager.createReview(movie, datetime.now().date(), payload.reviewer,0,0,payload.rating,
+        if (len(reviewList)>0):
+            raise HTTPException(status_code=409, detail="409 Review with this username and title already exists for this movie") 
+        return ReviewManager.createReview(movie, datetime.now().date(), payload.reviewer,0,0,payload.rating,
                                        payload.title,payload.description)
-        else:
-            raise HTTPException(status_code=409, detail="409 Review with this username and title already exists for this movie")
-        return Review(reviewDate = datetime.now().date(),reviewer= payload.reviewer,
-                      usefulnessVote=0,totalVotes=0,rating =payload.rating,
-                      title = payload.title,description =payload.description)
 
     def editReview(movie:str, currentTitle:str, payload:ReviewCreate):
         """Note: put the current title of the review in currentTitle and the new one in the payload. 
         Make sure the reviewer in the payload is the original reviewer"""
-        reviewList = ReviewManager.readReview(movie,payload.reviewer) 
-        reviewList = [r for r in reviewList if r.title == currentTitle]
+        reviewList = ReviewController.getReviewsByTitle(movie,payload.reviewer,currentTitle)
         if(reviewList == []):
             raise HTTPException(status_code = 404, detail = f"404 Review '{currentTitle}' not found")
         if(payload.rating >10 | payload.rating <0):
@@ -72,21 +64,14 @@ class ReviewController():
                                        payload.rating,payload.title,payload.description)
 
     def removeReview(movie:str, username:str,title:str):
-        if(MovieManager.readMovie(movie) is None):
-            raise HTTPException(status_code = 404, detail = "404 Movie not found")
-        if(UserManager.readUser(username) is None):
-            raise HTTPException(status_code = 404, detail = "404 User not found")
-        reviewList = ReviewManager.readReview(movie,username) 
-        reviewList = [r for r in reviewList if r.title == title]
+        reviewList = ReviewController.getReviewsByTitle(movie,username,title)
         if(reviewList == []):
-            raise HTTPException(status_code = 404, detail = "404 Review '{title}' not found")
+            raise HTTPException(status_code = 404, detail = f"404 Review '{title}' not found")
         for r in reviewList:
             ReviewManager.deleteReview(movie, r)
 
     def searchByName(movie:str,title:str):
-        if(MovieManager.readMovie(movie) is None):
-            raise HTTPException(status_code = 404, detail = "404 Movie not found")
-        reviews = ReviewManager.getReviews(movie)
+        reviews = ReviewController.getReviews(movie)
         if(len(title)==0):
             return reviews
         foundReviews = []
@@ -94,6 +79,16 @@ class ReviewController():
             if (title.lower() in r.title.lower()):
                 foundReviews.append(r)
         return foundReviews
+    
+    def getReviews(movie:str):
+        MovieController.getMovie(movie)
+        return ReviewManager.getReviews(movie)
+    
+    def getReviewsByTitle(movie:str, username:str,title:str) -> list[Review]:
+        MovieController.getMovie(movie)
+        reviewList = ReviewManager.readReview(movie,username) 
+        reviewList = [r for r in reviewList if r.title == title]
+        return reviewList
 
 class MovieController():
 
