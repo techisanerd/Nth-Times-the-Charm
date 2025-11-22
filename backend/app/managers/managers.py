@@ -1,5 +1,5 @@
 from managers.data_manager import DataManager
-from schemas.classes import User, Movie, Review
+from schemas.classes import User, Movie, Review, Session
 from datetime import datetime
 from pathlib import Path
 
@@ -162,3 +162,21 @@ class MovieManager():
     def getMovies():
         dataMan = DataManager.getInstance()
         return dataMan.getMovies()
+
+class SessionManager():
+
+    def createSession(token: str, username: str, created: datetime):
+        dm = DataManager.getInstance()
+        session = Session(token, username, created)
+        success = dm.createSession(session)
+        return session if success else None
+    
+    def getSession(token: str):
+        dm = DataManager.getInstance()
+        return dm.getSession(token)
+    
+    def deleteSession(token: str) -> bool:
+        dm = DataManager.getInstance()
+        return dm.deleteSession(token)
+    
+
