@@ -1,4 +1,4 @@
-import pytest
+import pytest, bcrypt
 import json
 
 from datetime import date
@@ -9,7 +9,7 @@ from datetime import datetime, date
 
 from managers.data_manager import DataManager
 from controllers.controllers import UserController, ReviewController, MovieController
-from managers.managers import UserManager, ReviewManager,MovieManager
+from managers.managers import UserManager, ReviewManager,MovieManager, SessionManager
 from schemas.classes import Movie, Review,Session,ReviewCreate,User
 from main import app
 
@@ -52,6 +52,20 @@ def testRepeatUsername():
         UserController.createUser(user)
     UserManager.deleteUser("TestUser")
     assert "Username already in use" in str(HTTPError.value)
+
+def testUpdatePasswordSuccess():
+    UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","oldPassword")
+    user = UserManager.readUser("TestUser")
+    result = UserController.updatePassword(user, "newPassword")
+    assert result is True
+    UserManager.deleteUser("TestUser")
+
+def testHashChange():
+    originalPassword = "MySecurePass123"
+    newPassword = "MyNewSecurePass456"
+    originalHash = UserController.hashPassword(originalPassword).hexdigest()
+    newHash = UserController.hashPassword(newPassword).hexdigest()
+    assert originalHash != newHash
 
 def testTooShortPassword():
     with pytest.raises(HTTPException) as HTTPError:
@@ -664,3 +678,25 @@ def testGetSessionCorruptFile(tempSessionFolder):
     #loading invalid session should return empty list
     sessions = dm._loadSession()
     assert sessions == []
+
+def testSessionManagerCreate(tempSessionFolder):
+    dm = tempSessionFolder  
+    t = datetime.now()
+    session = SessionManager.createSession("abc123", "bob", t)
+    assert session is not None
+    assert session.token == "abc123"
+    assert session.username == "bob"
+    assert session.created == t
+
+    stored = dm.getSession("abc123")
+    assert stored is not None
+    assert stored.token == "abc123"
+    assert stored.username == "bob"
+    assert stored.created == t
+
+def testSessionManagerPreventDuplicate(tempSessionFolder):
+    dm = tempSessionFolder
+    t = datetime.now()
+    SessionManager.createSession("abc123", "bob", t)
+    duplicate = SessionManager.createSession("abc123", "bob", t)
+    assert duplicate is None
