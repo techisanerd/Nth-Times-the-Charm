@@ -1,1 +1,8 @@
-[]
+[
+    {
+        "name": "string",
+        "email": "string",
+        "profilePic": "string",
+        "passwordHash": "$2b$12$LzhFkvFxFBbMu9gavsRSM.leTKOqh5.3w6zxAyv42yfFgFVa9CdmK"
+    }
+]
