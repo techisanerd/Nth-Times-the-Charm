@@ -1,16 +1,11 @@
 import datetime
 from pydantic import BaseModel
-class User:
-    #Creating a User object with all the same fields as in the UML
-    def __init__(self, name:str, email:str, profilePic:str, passwordHash:str, auth):
-        self.name = name
-        self.email = email
-        self.profilePic = profilePic
-        self.passwordHash = passwordHash
-        self.auth = auth
+class User(BaseModel):
+    name:str
+    email:str
+    profilePic:str
+    passwordHash:str
 
-    def updatePassword():
-        pass
 
 class Review(BaseModel):
     reviewDate:datetime.date

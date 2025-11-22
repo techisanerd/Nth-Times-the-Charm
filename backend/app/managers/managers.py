@@ -25,18 +25,18 @@ class UserManager():
         dataMan.writeUsers(userList)
 
 
-    def createUser(name:str, email:str, profilePic:str, passwordHash:str, auth=None) -> User | None:
+    def createUser(name:str, email:str, profilePic:str, passwordHash:str) -> User | None:
         #ensure no duplicates
         if UserManager.readUser(name) is not None:
             return None            
 
         
-        user = User(name, email, profilePic, passwordHash, auth)
+        user = User(name=name, email=email, profilePic=profilePic, passwordHash=passwordHash)
         UserManager.writeUserToData(user)
         return user
 
 
-    def updateUser(user, name:str=None, email:str=None, profilePic:str=None, passwordHash:str=None, auth=None) -> User:
+    def updateUser(user, name:str=None, email:str=None, profilePic:str=None, passwordHash:str=None) -> User:
         UserManager.deleteUser(user.name)
 
         if name is not None:
@@ -47,8 +47,6 @@ class UserManager():
             user.profilePic = profilePic
         if passwordHash is not None:
             user.passwordHash = passwordHash 
-        if auth is not None:
-            user.auth = auth 
 
         UserManager.writeUserToData(user)
         
