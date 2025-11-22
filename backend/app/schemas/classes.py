@@ -1,19 +1,10 @@
-import datetime, bcrypt
+import datetime
 from pydantic import BaseModel
 class User(BaseModel):
     name:str
     email:str
     profilePic:str
     passwordHash:str
-    
-    def updatePassword(self, new_password: str):
-        #Hash the new password and update the internal passwordHash.
-        if not isinstance(new_password, str) or len(new_password) < 8:
-            raise ValueError("Password must be at least 8 characters long")
-
-        hashed = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt())
-        self.passwordHash = hashed.decode()
-        return True
 
 
 class Review(BaseModel):
