@@ -52,7 +52,7 @@ def testRepeatUsername():
     assert "Username already in use" in str(HTTPError.value)
 
 def testUpdatePasswordSuccess():
-    user = User(name="Alice", email="a@example.com", profilePic="pic.jpg", passwordHash=bcrypt.hashpw(b"oldpass", bcrypt.gensalt()).decode())
+    user = UserController(name="TestUser", email="mail@example.com", profilePic="https://profilepic.example.com", passwordHash=bcrypt.hashpw(b"oldpass", bcrypt.gensalt()).decode())
     result = user.updatePassword("newpassword123")
     assert result is True
     assert user.verifyPassword("newpassword123")
