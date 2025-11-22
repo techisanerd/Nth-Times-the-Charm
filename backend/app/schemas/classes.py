@@ -9,6 +9,10 @@ class User(BaseModel):
     def updatePassword(self):
         pass
 
+class UserView(BaseModel):
+    name:str
+    profilePic:str
+
 class Review(BaseModel):
     reviewDate:datetime.date
     reviewer:str

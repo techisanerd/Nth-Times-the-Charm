@@ -1,8 +1,8 @@
 from fastapi import APIRouter, status, FastAPI
 from typing import List
-from controllers.controllers import ReviewController,MovieController
-from managers.managers import MovieManager,ReviewManager
-from schemas.classes import Movie,Review,MovieCreate,ReviewCreate
+from controllers.controllers import ReviewController,MovieController,UserController
+from managers.managers import MovieManager,ReviewManager, UserManager
+from schemas.classes import Movie,Review,MovieCreate,ReviewCreate,User,UserView
 from fastapi import FastAPI
 
 
@@ -44,3 +44,17 @@ def put_item(movie_title: str, reviewer:str, review_title:str, payload:ReviewCre
     return ReviewController.editReview(movie_title, reviewer, review_title, payload)
 
 
+routerUser = APIRouter(prefix="/Users", tags=["Users"])
+
+
+@routerUser.get("",response_model = List[UserView])
+def get_users():
+    return UserManager.getUsers()
+
+@routerUser.get("/{username}", response_model=UserView)
+def get_user(username):
+    return UserController.getUser(username)
+
+@routerUser.post("", response_model=UserView)
+def post_user(payload:User):
+    return UserController.createUser(payload)

@@ -10,7 +10,7 @@ from datetime import datetime, date
 from managers.data_manager import DataManager
 from controllers.controllers import UserController, ReviewController, MovieController
 from managers.managers import UserManager, ReviewManager,MovieManager
-from schemas.classes import Movie, Review,Session,ReviewCreate
+from schemas.classes import Movie, Review,Session,ReviewCreate,User
 from main import app
 
 originalMoviesFolder = " "
@@ -37,9 +37,10 @@ def testUpdateUser():
     assert UserManager.readUser("TESTUSER") == None and v.name == "NEWTESTUSER"
 
 def testUserCreation():
-    UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","PlainTestPassword")
+    user = User(name="TestUser",email="mail@example.com",profilePic="https://profilepic.example.com",passwordHash="PlainTextPassword")
+    UserController.createUser(user)
     u = UserManager.readUser("TestUser")
-    hashPassword = UserController.hashPassword("PlainTestPassword").hexdigest()
+    hashPassword = UserController.hashPassword("PlainTextPassword").hexdigest()
     UserManager.deleteUser("TestUser")
     assert u.name == "TestUser" and u.email == "mail@example.com" and u.profilePic == "https://profilepic.example.com"
     assert u.passwordHash == hashPassword
@@ -47,13 +48,15 @@ def testUserCreation():
 def testRepeatUsername():
     UserManager.createUser("TestUser","mail@example.com","https://profilepic.example.com","0xabcdef")
     with pytest.raises(HTTPException) as HTTPError:
-        UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","PlainTestPassword")
+        user = User(name="TestUser",email="mail@example.com",profilePic="https://profilepic.example.com",passwordHash="PlainTextPassword")
+        UserController.createUser(user)
     UserManager.deleteUser("TestUser")
     assert "Username already in use" in str(HTTPError.value)
 
 def testTooShortPassword():
     with pytest.raises(HTTPException) as HTTPError:
-        UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","tiny")
+        user = User(name="TestUser",email="mail@example.com",profilePic="https://profilepic.example.com",passwordHash="tiny")
+        UserController.createUser(user)
     UserManager.deleteUser("TestUser")
     assert "Password should be 8 or more characters" in str(HTTPError.value)
 
@@ -70,7 +73,8 @@ def testAddReviewInvalidMovie():
     assert "Movie not found" in str(HTTPError.value)
 
 def testAddReviewInvalidRating():
-    UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","PlainTextPassword")
+    user = User(name="TestUser",email="mail@example.com",profilePic="https://profilepic.example.com",passwordHash="PlainTextPassword")
+    UserController.createUser(user)
     with pytest.raises(HTTPException) as HTTPError:
         payload = ReviewCreate(reviewer ="TestUser",rating = 11, title = "hi", description = "hi")
         ReviewController.addReview("Joker",payload)
@@ -78,7 +82,8 @@ def testAddReviewInvalidRating():
     assert "Rating needs to be an integer between 0 and 10" in str(HTTPError.value)
 
 def testEditReview():
-    UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","PlainTextPassword")
+    user = User(name="TestUser",email="mail@example.com",profilePic="https://profilepic.example.com",passwordHash="PlainTextPassword")
+    UserController.createUser(user)
     payload = ReviewCreate(reviewer ="TestUser", rating = 7, title = "hi", description = "hi")
     ReviewController.addReview("Joker",payload)
     payload2 = ReviewCreate(reviewer ="TestUser", rating = 7, title = "NEW TITLE", description = "NEW DESCRIPTION")
@@ -91,8 +96,10 @@ def testEditReview():
     UserManager.deleteUser("TestUser")
 
 def testSearchReviews():
-    UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","PlainTextPassword")
-    UserController.createUser("TestUser2","mail@example.com","https://profilepic.example.com","PlainTextPassword")
+    user = User(name="TestUser",email="mail@example.com",profilePic="https://profilepic.example.com",passwordHash="PlainTextPassword")
+    UserController.createUser(user)
+    user = User(name="TestUser2",email="mail@example.com",profilePic="https://profilepic.example.com",passwordHash="PlainTextPassword")
+    UserController.createUser(user)
     payload = ReviewCreate(reviewer ="TestUser",rating = 7, title = "hi", description = "hi")
     ReviewController.addReview("Joker",payload)
     payload = ReviewCreate(reviewer ="TestUser2",rating = 7, title = "no", description = "hi")
@@ -418,7 +425,8 @@ def testApiGetReviewNoInput():
     } in response.json()
 
 def testApiPostDeleteReview():
-    UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","PlainTextPassword")
+    user = User(name="TestUser",email="mail@example.com",profilePic="https://profilepic.example.com",passwordHash="PlainTextPassword")
+    UserController.createUser(user)
     client = TestClient(app)
     currentDate = datetime.now().date()
     currentDate = currentDate.strftime("%Y-%m-%d")
@@ -481,6 +489,24 @@ def testApiGetMovie():
             "description": "With Spider-Man's identity now revealed, Peter asks Doctor Strange for help. When a spell goes wrong, dangerous foes from other worlds start to appear, forcing Peter to discover what it truly means to be Spider-Man.", 
             "duration": 148} == response.json()
 
+
+def testApiUser():
+    client = TestClient(app)
+    response = client.post("/Users", json = {
+  "name": "Test",
+  "email": "test.Email",
+  "profilePic": "testURL",
+  "passwordHash": "PlainTextPassWord"
+})
+    assert response.status_code == 200
+    assert {"name": "Test","profilePic": "testURL"} == response.json()
+    response = client.get("/Users")
+    assert response.status_code == 200
+    assert {"name": "Test","profilePic": "testURL"}in response.json()
+    response = client.get("/Users/Test")
+    assert response.status_code == 200
+    assert {"name": "Test","profilePic": "testURL"} == response.json()
+    UserManager.deleteUser("Test")
 
 #session class testing
 
