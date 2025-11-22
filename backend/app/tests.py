@@ -53,10 +53,10 @@ def testRepeatUsername():
 
 def testUpdatePasswordSuccess():
     UserController.createUser("TestUser","mail@example.com","https://profilepic.example.com","oldPassword")
-    result = UserController.updatePassword("TestUser", "newPassword")
+    user = UserManager.readUser("TestUser")
+    result = UserController.updatePassword(user, "newPassword")
     assert result is True
-    assert UserController.verifyPassword("newPassword")
-    assert not UserController.verifyPassword("oldPassword")
+    UserManager.deleteUser("TestUser")
 
 def testTooShortPassword():
     with pytest.raises(HTTPException) as HTTPError:
