@@ -48,4 +48,5 @@ COPY . .
 EXPOSE 8000
 
 # Run the application.
-CMD gunicorn 'backend.venv.Lib.site-packages.fastapi.middleware.wsgi' --bind=0.0.0.0:8000
+WORKDIR /app/app
+CMD gunicorn --bind=0.0.0.0:8000 main:app

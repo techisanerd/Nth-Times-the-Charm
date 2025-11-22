@@ -5,6 +5,8 @@
 # How to get started with the project!
 1.) clone the repository. Make sure you have Docker desktop installed on windows! 
 ```git clone https://github.com/techisanerd/Nth-Times-The-Charm.git```  
+2.) Navigate to the directory with the Dockerfile:
+``` cd .\backend```
 2.) Build with Docker:
 ```docker compose up --build``` 
 
