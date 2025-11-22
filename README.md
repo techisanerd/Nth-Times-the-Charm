@@ -1,8 +1,18 @@
+# Reviews App
+### By Margaret, Estella, Nash and Owen
+### Using data from IMDb
+
 # How to get started with the project!
-0.) clone the repository.  
+1.) clone the repository. Make sure you have Docker desktop installed on windows! 
 ```git clone https://github.com/techisanerd/Nth-Times-The-Charm.git```  
-1.) Set up a virtual environment.  
-```py -m venv NthTimesTheCharm; .\NthTimesTheCharm\Scripts\Activate.ps1```  
-2.) Use the requirements file to install the project's requirements.  
-```py -m pip install -r .\requirements.txt```  
-3.) Docker (coming soon)  
+2.) Build with Docker:
+```docker compose up --build``` 
+
+For editing, it is recommended to use a virtual environment. To create one, run
+```py -m venv venv```
+then run the script in the volder it creates:
+```.\venv\scripts\Activate.ps1```
+and finally, install dependencies:
+```py -m pip install -r requirements.txt```
+
+
