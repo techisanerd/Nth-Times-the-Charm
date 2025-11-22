@@ -1,4 +1,4 @@
-import datetime, os, hashlib, hmac
+import datetime, bcrypt
 from pydantic import BaseModel
 class User(BaseModel):
     name:str
@@ -6,19 +6,13 @@ class User(BaseModel):
     profilePic:str
     passwordHash:str
     
-    def updatePassword(self, new_password: str, iterations: int = 100_000):
-        if not isinstance(new_password, str) or len(new_password) < 6:
-            raise ValueError("Password must be at least 6 characters long")
-        salt = os.urandom(16)
+    def updatePassword(self, new_password: str):
+        #Hash the new password and update the internal passwordHash.
+        if not isinstance(new_password, str) or len(new_password) < 8:
+            raise ValueError("Password must be at least 8 characters long")
 
-        # Create PBKDF2-HMAC hash
-        pwd_hash = hashlib.pbkdf2_hmac(
-            "sha256",
-            new_password.encode(),
-            salt,
-            iterations
-        )
-        self.passwordHash = f"{iterations}${salt.hex()}${pwd_hash.hex()}"
+        hashed = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt())
+        self.passwordHash = hashed.decode()
         return True
 
 
