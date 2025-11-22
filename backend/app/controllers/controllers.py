@@ -20,7 +20,9 @@ class UserController():
         return hashlib.sha224(passwordPlaintext.encode(), usedforsecurity= True)
     
     def updatePassword(self, new_password: str):
-        #Hash the new password and update the internal passwordHash.
+        if self is None:
+            raise HTTPException(status_code=404, detail="404 User not found")
+        
         if not isinstance(new_password, str) or len(new_password) < 8:
             raise ValueError("Password must be at least 8 characters long")
 
