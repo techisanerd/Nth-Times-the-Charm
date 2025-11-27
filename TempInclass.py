@@ -1,5 +1,5 @@
 from pathlib import Path
-import PyDriller
+from pydriller import Repository
 repo = Path(__file__).resolve().parent
 for commit in Repository(repo).traverse_commits():
     for file in commit.modified_files:
