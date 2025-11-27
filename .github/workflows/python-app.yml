@@ -37,6 +37,6 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Run Pydriller
       run: |
-        for commit in Repository('path/to/the/repo').traverse_commits():
+        for commit in Repository('backend/app').traverse_commits():
            for file in commit.modified_files:
              print('Author {} modified {} in commit {}'.format(commit.author.name, file.filename, commit.hash))
