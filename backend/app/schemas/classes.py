@@ -100,4 +100,11 @@ class Session:
             created=datetime.datetime.fromisoformat(data['created'])
         )
 
+    
+
+class profilePic(BaseModel):
+    profilePicURL:str
+    themes:list[str]
+
+   
    
