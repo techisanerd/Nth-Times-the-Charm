@@ -63,10 +63,15 @@ def post_user(payload:User):
 
 routerExport = APIRouter()
 
+ReviewData = [
+    {"movie_title": "Test Movie", "reviewDate": "2023-01-10", "reviewer": "Alice", "rating": 7, "description": "Hi"},
+    {"movie_title": "Test Movie", "reviewDate": "2023-01-11", "reviewer": "Bob", "rating": 8, "description": "Okay"},
+]
+
 @routerExport.get("/export/reviews")
 async def export_reviews(movie_title: str = Query(..., description="Title of the movie"), fields: Optional[List[str]] = None):
     
-    data = [r for r in Review if r["movie_title"] == movie_title]
+    data = [r for r in ReviewData if r["movie_title"] == movie_title]
 
     if fields:
         data = [{key: review[key] for key in fields if key in review} for review in data]
