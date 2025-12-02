@@ -1,5 +1,5 @@
 from fastapi import FastAPI 
-from routers.fastapi import routerMovie,routerReview,routerUser
+from routers.fastapi import routerMovie,routerReview,routerUser,routerExport
 
 app = FastAPI()
 
@@ -10,4 +10,4 @@ def health():
 app.include_router(routerMovie)
 app.include_router(routerReview)
 app.include_router(routerUser)
-
+app.include_router(routerExport)
