@@ -5,7 +5,7 @@ from controllers.controllers import ReviewController,MovieController,UserControl
 from managers.managers import MovieManager,ReviewManager, UserManager
 from schemas.classes import Movie,Review,MovieCreate,ReviewCreate,User,UserView
 from fastapi import FastAPI
-from fastapi.responses import ORJSONResponse
+from fastapi.responses import JSONResponse
 
 
 
@@ -94,7 +94,7 @@ async def export_reviews(movie_title: str = Query(..., description="Title of the
     if fields:
         data = [{key: review[key] for key in fields if key in review} for review in data]
 
-    return ORJSONResponse(
+    return JSONResponse(
         content=data,
         media_type="application/json",
         headers={
