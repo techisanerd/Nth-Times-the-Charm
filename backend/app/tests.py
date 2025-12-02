@@ -164,8 +164,8 @@ def test_export_reviews_no_fields():
     assert response.status_code == 200
     assert response.headers["Content-Disposition"] == "attachment; filename=movie_Test Movie_reviews.json"
     assert response.json() == [
-    {"reviewDate": "2023-01-10T00:00:00", "reviewer": "Alice", "rating": 7, "description": "Hi"},
-    {"reviewDate": "2023-01-11T00:00:00", "reviewer": "Bob", "rating": 8, "description": "Okay"},
+    {"movie_title": "Test Movie", "reviewDate": "2023-01-10T00:00:00", "reviewer": "Alice", "rating": 7, "description": "Hi"},
+    {"movie_title": "Test Movie", "reviewDate": "2023-01-11T00:00:00", "reviewer": "Bob", "rating": 8, "description": "Okay"},
 ]
 
 def test_export_reviews_with_fields():

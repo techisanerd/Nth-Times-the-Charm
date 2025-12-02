@@ -1,5 +1,6 @@
 from fastapi import APIRouter, status, Query, FastAPI
 from typing import List, Optional
+from datetime import datetime
 from controllers.controllers import ReviewController,MovieController,UserController
 from managers.managers import MovieManager,ReviewManager, UserManager
 from schemas.classes import Movie,Review,MovieCreate,ReviewCreate,User,UserView
@@ -64,8 +65,8 @@ def post_user(payload:User):
 routerExport = APIRouter()
 
 ReviewData = [
-    {"movie_title": "Test Movie", "reviewDate": "2023-01-10", "reviewer": "Alice", "rating": 7, "description": "Hi"},
-    {"movie_title": "Test Movie", "reviewDate": "2023-01-11", "reviewer": "Bob", "rating": 8, "description": "Okay"},
+    {"movie_title": "Test Movie", "reviewDate": datetime(2023, 1, 10), "reviewer": "Alice", "rating": 7, "description": "Hi"},
+    {"movie_title": "Test Movie", "reviewDate": datetime(2023, 1, 11), "reviewer": "Bob", "rating": 8, "description": "Okay"},
 ]
 
 @routerExport.get("/export/reviews")
