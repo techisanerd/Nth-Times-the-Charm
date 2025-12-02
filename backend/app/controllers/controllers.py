@@ -14,6 +14,12 @@ class UserController():
             raise HTTPException(status_code = 400, detail = "400 Username already in use")
         if(len(payload.passwordHash)<8):
             raise HTTPException(status_code = 400, detail = "400 Password should be 8 or more characters")
+        if(payload.profilePic == None):
+            payload.profilePic = ProfilePicController.getProfilePic()
+        else:
+            picURLs = ProfilePicController.searchByTags()
+            if(payload.profilePic not in picURLs):
+                raise HTTPException(status_code = 400, detail = "400 URL must be from our list of accepted profile URLs")
         hashedPassword = UserController.hashPassword(payload.passwordHash)
         return UserManager.createUser(payload.name,payload.email,payload.profilePic,hashedPassword)
     
@@ -149,8 +155,12 @@ class ProfilePicController():
     def searchByTags(tags:list=[]):
         dataMan = DataManager.getInstance()
         pics = dataMan.getProfilePics()
+        dm = DataManager.getInstance()
+        picURLs = []
+        for p in dm.getProfilePics():
+            picURLs.append(p.profilePicURL)
         if(len(tags)==0):
-            return pics
+            return picURLs
         foundPics = []
         for t in tags:
             for p in pics:

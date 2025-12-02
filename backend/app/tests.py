@@ -5,6 +5,7 @@ from datetime import date
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from pathlib import Path
+import random
 from datetime import datetime, date
 
 from managers.data_manager import DataManager
@@ -37,23 +38,23 @@ def testUpdateUser():
     assert UserManager.readUser("TESTUSER") == None and v.name == "NEWTESTUSER"
 
 def testUserCreation():
-    user = User(name="TestUser",email="mail@example.com",profilePic="https://profilepic.example.com",passwordHash="PlainTextPassword")
+    user = User(name="TestUser",email="mail@example.com",passwordHash="PlainTextPassword")
     UserController.createUser(user)
     u = UserManager.readUser("TestUser")
-    assert u.name == "TestUser" and u.email == "mail@example.com" and u.profilePic == "https://profilepic.example.com"
+    assert u.name == "TestUser" and u.email == "mail@example.com" and u.profilePic in ProfilePicController.searchByTags()
     assert UserController.verifyPassword("TestUser","PlainTextPassword")
     UserManager.deleteUser("TestUser")
 
 def testRepeatUsername():
     UserManager.createUser("TestUser","mail@example.com","https://profilepic.example.com","0xabcdef")
     with pytest.raises(HTTPException) as HTTPError:
-        user = User(name="TestUser",email="mail@example.com",profilePic="https://profilepic.example.com",passwordHash="PlainTextPassword")
+        user = User(name="TestUser",email="mail@example.com",passwordHash="PlainTextPassword")
         UserController.createUser(user)
     UserManager.deleteUser("TestUser")
     assert "Username already in use" in str(HTTPError.value)
 
 def testUpdatePasswordSuccess():
-    user = User(name="TestUser",email="mail@example.com",profilePic="https://profilepic.example.com",passwordHash="oldPassword")
+    user = User(name="TestUser",email="mail@example.com",passwordHash="oldPassword")
     UserController.createUser(user)
     user = UserManager.readUser("TestUser")
     result = UserController.updatePassword(user, "newPassword")
@@ -69,7 +70,7 @@ def testHashChange():
 
 def testTooShortPassword():
     with pytest.raises(HTTPException) as HTTPError:
-        user = User(name="TestUser",email="mail@example.com",profilePic="https://profilepic.example.com",passwordHash="tiny")
+        user = User(name="TestUser",email="mail@example.com",passwordHash="tiny")
         UserController.createUser(user)
     UserManager.deleteUser("TestUser")
     assert "Password should be 8 or more characters" in str(HTTPError.value)
@@ -87,7 +88,7 @@ def testAddReviewInvalidMovie():
     assert "Movie not found" in str(HTTPError.value)
 
 def testAddReviewInvalidRating():
-    user = User(name="TestUser",email="mail@example.com",profilePic="https://profilepic.example.com",passwordHash="PlainTextPassword")
+    user = User(name="TestUser",email="mail@example.com",passwordHash="PlainTextPassword")
     UserController.createUser(user)
     with pytest.raises(HTTPException) as HTTPError:
         payload = ReviewCreate(reviewer ="TestUser",rating = 11, title = "hi", description = "hi")
@@ -96,7 +97,7 @@ def testAddReviewInvalidRating():
     assert "Rating needs to be an integer between 0 and 10" in str(HTTPError.value)
 
 def testEditReview():
-    user = User(name="TestUser",email="mail@example.com",profilePic="https://profilepic.example.com",passwordHash="PlainTextPassword")
+    user = User(name="TestUser",email="mail@example.com",passwordHash="PlainTextPassword")
     UserController.createUser(user)
     payload = ReviewCreate(reviewer ="TestUser", rating = 7, title = "hi", description = "hi")
     ReviewController.addReview("Joker",payload)
@@ -110,9 +111,9 @@ def testEditReview():
     UserManager.deleteUser("TestUser")
 
 def testSearchReviews():
-    user = User(name="TestUser",email="mail@example.com",profilePic="https://profilepic.example.com",passwordHash="PlainTextPassword")
+    user = User(name="TestUser",email="mail@example.com",passwordHash="PlainTextPassword")
     UserController.createUser(user)
-    user = User(name="TestUser2",email="mail@example.com",profilePic="https://profilepic.example.com",passwordHash="PlainTextPassword")
+    user = User(name="TestUser2",email="mail@example.com",passwordHash="PlainTextPassword")
     UserController.createUser(user)
     payload = ReviewCreate(reviewer ="TestUser",rating = 7, title = "hi", description = "hi")
     ReviewController.addReview("Joker",payload)
@@ -439,7 +440,7 @@ def testApiGetReviewNoInput():
     } in response.json()
 
 def testApiPostDeleteReview():
-    user = User(name="TestUser",email="mail@example.com",profilePic="https://profilepic.example.com",passwordHash="PlainTextPassword")
+    user = User(name="TestUser",email="mail@example.com",passwordHash="PlainTextPassword")
     UserController.createUser(user)
     client = TestClient(app)
     currentDate = datetime.now().date()
@@ -504,22 +505,25 @@ def testApiGetMovie():
             "duration": 148} == response.json()
 
 
-def testApiUser():
+def randomJson(tags):
+    return ["https://api.dicebear.com/9.x/shapes/svg"]
+
+def testApiUser(monkeypatch):
+    monkeypatch.setattr(ProfilePicController,"searchByTags", randomJson)
     client = TestClient(app)
     response = client.post("/Users", json = {
   "name": "Test",
   "email": "test.Email",
-  "profilePic": "testURL",
   "passwordHash": "PlainTextPassword"
 })
     assert response.status_code == 200
-    assert {"name": "Test","profilePic": "testURL"} == response.json()
+    assert {"name": "Test", "profilePic" : "https://api.dicebear.com/9.x/shapes/svg"} == response.json()
     response = client.get("/Users")
     assert response.status_code == 200
-    assert {"name": "Test","profilePic": "testURL"}in response.json()
+    assert {"name": "Test", "profilePic" : "https://api.dicebear.com/9.x/shapes/svg"} in response.json()
     response = client.get("/Users/Test")
     assert response.status_code == 200
-    assert {"name": "Test","profilePic": "testURL"} == response.json()
+    assert {"name": "Test", "profilePic" : "https://api.dicebear.com/9.x/shapes/svg"} == response.json()
     UserManager.deleteUser("Test")
 
 #session class testing
