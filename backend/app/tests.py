@@ -153,7 +153,7 @@ ReviewData = [
 ]
 
 def test_export_reviews_no_fields():
-    response = client.get("/export/reviews?movie_title=Joker")
+    response = client.get("/export/reviews?movie_title=Test Movie")
     assert response.status_code == 200
     assert response.headers["Content-Disposition"] == "attachment; filename = movie_1_reviews.json"
     assert response.json() == [
@@ -162,7 +162,7 @@ def test_export_reviews_no_fields():
     ]
 
 def test_export_reviews_with_fields():
-    response = client.get("/export/reviews?movie_title=Joker&fields=reviewer&fields=rating")
+    response = client.get("/export/reviews?movie_title=Test Movie&fields=reviewer&fields=rating")
     assert response.status_code == 200
     assert response.headers["Content-Disposition"] == "attachment; filename=movie_1_reviews.json"
     assert response.json() == [
