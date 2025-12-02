@@ -5,6 +5,7 @@ from managers.data_manager import DataManager
 from managers.managers import UserManager
 from managers.managers import ReviewManager, MovieManager
 from schemas.classes import Review, User,ReviewCreate
+from random import randrange
 
 class UserController():
 
@@ -133,3 +134,39 @@ class MovieController():
         tags = set(tags)
         return tags
      
+class ProfilePicController():
+
+    def getProfilePic(tags:list=[]):
+        pics = ProfilePicController.searchByTags(tags)
+        if(len(pics)==0):
+            raise HTTPException(status_code = 404, detail = f"404 Picture with all tags not found")
+        if(len(pics)>1):
+            randomNum = randrange(0,len(pics))
+            return pics[randomNum]
+        return pics[0]
+    
+
+    def searchByTags(tags:list=[]):
+        dataMan = DataManager.getInstance()
+        pics = dataMan.getProfilePics()
+        if(len(tags)==0):
+            return pics
+        foundPics = []
+        for t in tags:
+            for p in pics:
+                if (t in p.themes):
+                    foundPics.append(p.profilePicURL)
+                else:
+                    if(p.profilePicURL in foundPics):
+                        foundPics.remove(p.profilePicURL)
+        foundPics = list(set(foundPics))
+        return foundPics
+    
+    def getAllTags():
+        dataMan = DataManager.getInstance()
+        tags = []
+        pics = dataMan.getProfilePics()
+        for p in pics:
+            tags += p.themes
+        tags = set(tags)
+        return tags

@@ -8,9 +8,9 @@ from pathlib import Path
 from datetime import datetime, date
 
 from managers.data_manager import DataManager
-from controllers.controllers import UserController, ReviewController, MovieController
+from controllers.controllers import UserController, ReviewController, MovieController, ProfilePicController
 from managers.managers import UserManager, ReviewManager,MovieManager, SessionManager
-from schemas.classes import Movie, Review,Session,ReviewCreate,User
+from schemas.classes import Movie, Review,Session,ReviewCreate,User,ProfilePic
 from main import app
 
 originalMoviesFolder = " "
@@ -700,3 +700,35 @@ def testSessionManagerPreventDuplicate(tempSessionFolder):
     SessionManager.createSession("abc123", "bob", t)
     duplicate = SessionManager.createSession("abc123", "bob", t)
     assert duplicate is None
+
+def testProfilePicSearchTags():
+    assert ["https://api.dicebear.com/9.x/icons/svg"] == ProfilePicController.searchByTags(["Simple","Objects"])
+
+def testProfilePic():
+    assert "https://api.dicebear.com/9.x/icons/svg" == ProfilePicController.getProfilePic(["Simple","Objects"])
+
+@pytest.fixture
+def tempProfilePicFolder(tmp_path):
+    folder = tmp_path / "tempProfilePics.json"
+    data = [
+    {
+        "profilePicURL": "testICONS",
+        "themes": ["Simple","Objects","Pastel"]
+    },
+    {
+        "profilePicURL": "testADVENTURE",
+        "themes": ["People","Colorful","Fantasy"]
+    }]
+    folder.write_text(json.dumps(data), encoding="utf-8")
+    dm = DataManager.getInstance()
+    dm.profilePicsFile = folder
+    return dm
+
+def testGetProfilePics(tempProfilePicFolder):
+    pics = [ProfilePic(profilePicURL="testICONS",themes = ["Simple","Objects","Pastel"]),
+            ProfilePic(profilePicURL="testADVENTURE", themes = ["People","Colorful","Fantasy"])] 
+    assert pics == tempProfilePicFolder.getProfilePics()
+
+def testGetAllTagsProfilePic():
+    assert {"Simple","Objects","Pastel", "People","Colorful","Fantasy"} == ProfilePicController.getAllTags()
+

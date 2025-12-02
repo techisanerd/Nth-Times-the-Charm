@@ -1,4 +1,4 @@
-from schemas.classes import Review, Movie, User, Session
+from schemas.classes import Review, Movie, User, Session, ProfilePic
 from pathlib import Path
 from datetime import datetime
 import shutil
@@ -10,6 +10,7 @@ class DataManager():
     dataFolder = Path(__file__).resolve().parent.parent / "data"
     moviesFolder = dataFolder / "Movies"
     userFile = dataFolder / "users.json"
+    profilePicsFile = dataFolder / "profilePics.json"
     # this one is different as the path will need the movie name added in
     reviewFile = "movieReviews.csv"
     #init raises an error since this is a singleton
@@ -237,4 +238,13 @@ class DataManager():
         # get all reports in database
     def getReports():
         pass
+
+
+    def getProfilePics(self):
+        dictList = [] 
+        if os.path.exists(self.profilePicsFile):
+            with open(self.profilePicsFile, "r") as f:
+                dictList = json.load(f)
+        picList = [ProfilePic(**picData) for picData in dictList]
+        return picList
 

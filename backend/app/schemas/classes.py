@@ -102,7 +102,7 @@ class Session:
 
     
 
-class profilePic(BaseModel):
+class ProfilePic(BaseModel):
     profilePicURL:str
     themes:list[str]
 
