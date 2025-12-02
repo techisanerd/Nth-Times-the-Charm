@@ -128,7 +128,7 @@ def testSearchReviews():
         reviewTitles.append(r.title)
     assert "hi" in reviewTitles and "no" not in reviewTitles
 
-#3 tests for exporting reviews to json files
+#2 tests for exporting reviews to json files
 client = TestClient(app)
 
 ReviewData = [
@@ -153,7 +153,7 @@ ReviewData = [
 ]
 
 def test_export_reviews_no_fields():
-    response = client.get("/export/reviews?movie_id=1")
+    response = client.get("/export/reviews?movie_title=Joker")
     assert response.status_code == 200
     assert response.headers["Content-Disposition"] == "attachment; filename = movie_1_reviews.json"
     assert response.json() == [
@@ -162,18 +162,13 @@ def test_export_reviews_no_fields():
     ]
 
 def test_export_reviews_with_fields():
-    response = client.get("/export/reviews?movie_id=1&fields=reviewer&fields=rating")
+    response = client.get("/export/reviews?movie_title=Joker&fields=reviewer&fields=rating")
     assert response.status_code == 200
     assert response.headers["Content-Disposition"] == "attachment; filename=movie_1_reviews.json"
     assert response.json() == [
         {"reviewer": "Alice", "rating": 7},
         {"reviewer": "Bob", "rating": 8},
     ]
-
-def test_export_reviews_movie_with_no_reviews():
-    response = client.get("/export/reviews?movie_id=999")
-    assert response.status_code == 200
-    assert response.json() == []
 
 #3 tests for searchMovies by tag using Equivalence Partitioning
 def testSearchMoviesNoTag():

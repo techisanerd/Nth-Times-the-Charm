@@ -1,5 +1,5 @@
 from fastapi import APIRouter, status, Query, FastAPI
-from typing import List
+from typing import List, Optional
 from controllers.controllers import ReviewController,MovieController,UserController
 from managers.managers import MovieManager,ReviewManager, UserManager
 from schemas.classes import Movie,Review,MovieCreate,ReviewCreate,User,UserView
@@ -64,22 +64,17 @@ def post_user(payload:User):
 routerExport = APIRouter()
 
 @routerExport.get("/export/reviews")
-async def export_reviews(
-    movie_id: int,
-    fields: List[str] = Query(None, description="Fields to include in export")):
+async def export_reviews(movie_title: str = Query(..., description="Title of the movie"), fields: Optional[List[str]] = None):
     
-    # Filter reviews by movie
-    data = [r for r in Review if r["movie_id"] == movie_id]
+    data = [r for r in Review if r["movie_title"] == movie_title]
 
-    # Filter fields
     if fields:
         data = [{key: review[key] for key in fields if key in review} for review in data]
 
-    # Return as downloadable JSON
     return JSONResponse(
         content=data,
         media_type="application/json",
         headers={
-            "Content-Disposition": f"attachment; filename=movie_{movie_id}_reviews.json"
+            "Content-Disposition": f"attachment; filename=movie_{movie_title}_reviews.json"
         }
     )
