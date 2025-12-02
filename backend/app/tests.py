@@ -152,6 +152,13 @@ ReviewData = [
     )
 ]
 
+movies = [
+    {"title": "Test Movie", "reviews": [
+        {"reviewer": "Alice", "rating": 7},
+        {"reviewer": "Bob", "rating": 8}
+    ]},
+]
+
 def test_export_reviews_no_fields():
     response = client.get("/export/reviews?movie_title=Test Movie")
     assert response.status_code == 200
