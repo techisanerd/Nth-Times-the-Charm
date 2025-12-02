@@ -133,7 +133,7 @@ client = TestClient(app)
 
 ReviewData = [
     Review(
-        reviewDate=datetime(2023, 1, 10),
+        reviewDate=datetime(2023, 1, 10).strftime("%Y-%m-%d"),
         reviewer="Alice",
         usefulnessVote=5,
         totalVotes=5,
@@ -142,7 +142,7 @@ ReviewData = [
         description="Hi"
     ),
     Review(
-        reviewDate=datetime(2023, 1, 11),
+        reviewDate=datetime(2023, 1, 11).strftime("%Y-%m-%d"),
         reviewer="Bob",
         usefulnessVote=3,
         totalVotes=5,
@@ -164,8 +164,8 @@ def test_export_reviews_no_fields():
     assert response.status_code == 200
     assert response.headers["Content-Disposition"] == "attachment; filename=movie_Test Movie_reviews.json"
     assert response.json() == [
-    {"movie_title": "Test Movie", "reviewDate": "2023-01-10T00:00:00", "reviewer": "Alice", "rating": 7, "description": "Hi"},
-    {"movie_title": "Test Movie", "reviewDate": "2023-01-11T00:00:00", "reviewer": "Bob", "rating": 8, "description": "Okay"},
+    {"movie_title": "Test Movie", "reviewDate": "2023-01-10", "reviewer": "Alice", "rating": 7, "description": "Hi"},
+    {"movie_title": "Test Movie", "reviewDate": "2023-01-11", "reviewer": "Bob", "rating": 8, "description": "Okay"},
 ]
 
 def test_export_reviews_with_fields():
@@ -173,9 +173,21 @@ def test_export_reviews_with_fields():
     assert response.status_code == 200
     assert response.headers["Content-Disposition"] == "attachment; filename=movie_Test Movie_reviews.json"
     assert response.json() == [
-        {"reviewer": "Alice", "rating": 7},
-        {"reviewer": "Bob", "rating": 8},
-    ]
+    {
+        "movie_title": "Test Movie",
+        "reviewDate": "2023-01-10",
+        "reviewer": "Alice",
+        "rating": 7,
+        "description": "Hi"
+    },
+    {
+        "movie_title": "Test Movie",
+        "reviewDate": "2023-01-11",
+        "reviewer": "Bob",
+        "rating": 8,
+        "description": "Okay"
+    }
+]
 
 #3 tests for searchMovies by tag using Equivalence Partitioning
 def testSearchMoviesNoTag():

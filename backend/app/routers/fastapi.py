@@ -5,7 +5,7 @@ from controllers.controllers import ReviewController,MovieController,UserControl
 from managers.managers import MovieManager,ReviewManager, UserManager
 from schemas.classes import Movie,Review,MovieCreate,ReviewCreate,User,UserView
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
+from fastapi.responses import ORJSONResponse
 
 
 
@@ -69,15 +69,32 @@ ReviewData = [
     {"movie_title": "Test Movie", "reviewDate": datetime(2023, 1, 11), "reviewer": "Bob", "rating": 8, "description": "Okay"},
 ]
 
+def serialize_record(record: dict) -> dict:
+    out = {}
+    for k, v in record.items():
+        if isinstance(v, datetime):
+            out[k] = v.date().isoformat()
+        else:
+            out[k] = v
+    return out
+
 @routerExport.get("/export/reviews")
 async def export_reviews(movie_title: str = Query(..., description="Title of the movie"), fields: Optional[List[str]] = None):
     
-    data = [r for r in ReviewData if r["movie_title"] == movie_title]
+    data = [r.copy() for r in ReviewData if r["movie_title"] == movie_title]
+
+    data = [serialize_record(r) for r in data]
+
+    if fields:
+        data = [
+            {k: v for k, v in r.items() if k in fields or k == "movie_title"}
+            for r in data
+        ]
 
     if fields:
         data = [{key: review[key] for key in fields if key in review} for review in data]
 
-    return JSONResponse(
+    return ORJSONResponse(
         content=data,
         media_type="application/json",
         headers={
