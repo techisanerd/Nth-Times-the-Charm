@@ -3,8 +3,8 @@ from fastapi import HTTPException
 from datetime import datetime
 from managers.data_manager import DataManager
 from managers.managers import UserManager
-from managers.managers import ReviewManager, MovieManager, AdminManager
-from schemas.classes import Review, User,ReviewCreate, Admin
+from managers.managers import ReviewManager, MovieManager
+from schemas.classes import Review, User,ReviewCreate
 
 class UserController():
 
@@ -133,31 +133,3 @@ class MovieController():
         tags = set(tags)
         return tags
      
-class AdminController():
-
-    def createAdmin(payload:Admin):
-        admin = UserController.createUser(Admin)
-        if(AdminManager.readAdmin(payload.name) is not None):
-            raise HTTPException(status_code = 400, detail = "400 Admin already exist with this name")
-        AdminManager.writeUserToData(admin)
-
-    def getAdmin(username):
-        if(AdminManager.readAdmin(username)==None):
-            raise HTTPException(status_code = 404, detail = "404 Admin Not Found")
-        return AdminManager.readAdmin(username)
-    
-
-class AdminReviewController():
-
-    def takedownReview(adminName:str, movie:str, username:str, reviewTitle:str):
-        AdminController.getAdmin(adminName)
-        MovieController.getMovie(movie)
-        try:
-            UserController.getUser(username)
-            #TODO give warning to user
-        except:
-            pass
-        ReviewController.removeReview(movie, username, reviewTitle) #TODO make it so only admins can delete a review that isn't theirs
-
-    
-        

@@ -9,8 +9,8 @@ from datetime import datetime, date
 
 from managers.data_manager import DataManager
 from controllers.controllers import UserController, ReviewController, MovieController
-from managers.managers import UserManager, ReviewManager,MovieManager, SessionManager, AdminManager
-from schemas.classes import Movie, Review,Session,ReviewCreate,User, Admin
+from managers.managers import UserManager, ReviewManager,MovieManager, SessionManager
+from schemas.classes import Movie, Review,Session,ReviewCreate,User
 from main import app
 
 originalMoviesFolder = " "
@@ -35,14 +35,6 @@ def testUpdateUser():
     v = UserManager.updateUser(u, name="NEWTESTUSER")
     UserManager.deleteUser("NEWTESTUSER")
     assert UserManager.readUser("TESTUSER") == None and v.name == "NEWTESTUSER"
-
-def testAdminManager():
-    admin = Admin(name="TestAdmin",email="mail@example.com",profilePic="https://profilepic.example.com",passwordHash="0xabcdefg")
-    AdminManager.writeUserToData(admin)
-    u = AdminManager.readAdmin("TestAdmin")
-    AdminManager.deleteAdmin("TestAdmin")
-    assert u.name == "TestAdmin" and u.email=="mail@example.com" and u.profilePic=="https://profilepic.example.com" and u.passwordHash == "0xabcdefg"
-    assert AdminManager.readAdmin("TestAdmin") == None
 
 def testUserCreation():
     user = User(name="TestUser",email="mail@example.com",profilePicURL="https://profilepic.example.com",password="PlainTextPassword")
