@@ -86,12 +86,6 @@ async def export_reviews(movie_title: str = Query(..., description="Title of the
     data = [serialize_record(r) for r in data]
 
     if fields:
-        data = [
-            {k: v for k, v in r.items() if k in fields or k == "movie_title"}
-            for r in data
-        ]
-
-    if fields:
         data = [{key: review[key] for key in fields if key in review} for review in data]
 
     return JSONResponse(
