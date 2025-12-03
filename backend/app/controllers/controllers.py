@@ -3,8 +3,8 @@ from fastapi import HTTPException
 from datetime import datetime
 from managers.data_manager import DataManager
 from managers.managers import UserManager
-from managers.managers import ReviewManager, MovieManager
-from schemas.classes import Review, User,ReviewCreate
+from managers.managers import ReviewManager, MovieManager, AdminManager
+from schemas.classes import Review, User,ReviewCreate, Admin
 from random import randrange
 
 class UserController():
@@ -12,10 +12,10 @@ class UserController():
     def createUser(payload:User):
         if(UserManager.readUser(payload.name)!=None):
             raise HTTPException(status_code = 400, detail = "400 Username already in use")
-        if(len(payload.passwordHash)<8):
+        if(len(payload.password)<8):
             raise HTTPException(status_code = 400, detail = "400 Password should be 8 or more characters")
-        hashedPassword = UserController.hashPassword(payload.passwordHash)
-        return UserManager.createUser(payload.name,payload.email,payload.profilePic,hashedPassword)
+        hashedPassword = UserController.hashPassword(payload.password)
+        return UserManager.createUser(payload.name,payload.email,payload.profilePicURL,hashedPassword)
     
     def hashPassword(passwordPlaintext:str):
         hashed = bcrypt.hashpw(passwordPlaintext.encode(), bcrypt.gensalt())
@@ -33,12 +33,12 @@ class UserController():
         if not isinstance(new_password, str) or len(new_password) < 8:
             raise ValueError("Password must be at least 8 characters long")
 
-        user.passwordHash = UserController.hashPassword(new_password)
+        user.password = UserController.hashPassword(new_password)
         return True
     
     def verifyPassword(user, password: str) -> bool:
         user = UserManager.readUser(user)
-        return bcrypt.checkpw(password.encode(), user.passwordHash.encode())
+        return bcrypt.checkpw(password.encode(), user.password.encode())
 
 class ReviewController():
 
@@ -170,3 +170,31 @@ class ProfilePicController():
             tags += p.themes
         tags = set(tags)
         return tags
+class AdminController():
+
+    def createAdmin(payload:Admin):
+        admin = UserController.createUser(Admin)
+        if(AdminManager.readAdmin(payload.name) is not None):
+            raise HTTPException(status_code = 400, detail = "400 Admin already exist with this name")
+        AdminManager.writeUserToData(admin)
+
+    def getAdmin(username):
+        if(AdminManager.readAdmin(username)==None):
+            raise HTTPException(status_code = 404, detail = "404 Admin Not Found")
+        return AdminManager.readAdmin(username)
+    
+
+class AdminReviewController():
+
+    def takedownReview(adminName:str, movie:str, username:str, reviewTitle:str):
+        AdminController.getAdmin(adminName)
+        MovieController.getMovie(movie)
+        try:
+            UserController.getUser(username)
+            #TODO give warning to user
+        except:
+            pass
+        ReviewController.removeReview(movie, username, reviewTitle) #TODO make it so only admins can delete a review that isn't theirs
+
+    
+        
