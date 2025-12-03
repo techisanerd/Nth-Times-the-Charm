@@ -1,9 +1,9 @@
 from fastapi import APIRouter, status, Query, FastAPI
 from typing import List, Optional
 from datetime import datetime
-from controllers.controllers import ReviewController,MovieController,UserController
+from controllers.controllers import ReviewController,MovieController,UserController,ReplyController
 from managers.managers import MovieManager,ReviewManager, UserManager
-from schemas.classes import Movie,Review,MovieCreate,ReviewCreate,User,UserView
+from schemas.classes import Movie,Review,MovieCreate,ReviewCreate,User,UserView,Reply,ReplyCreate
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
@@ -44,6 +44,16 @@ def remove_item(movie_title: str,reviewer:str,review_title:str):
 @routerReview.put("/{movie_title}/{review_title}", response_model=Review)
 def put_item(movie_title: str, review_title:str, payload:ReviewCreate):
     return ReviewController.editReview(movie_title, review_title, payload)
+
+@routerReview.post("/{movie_title}/{reviewer}/{review_title}/reply", response_model=Reply)
+def post_reply(movie_title: str, reviewer: str, review_title: str, payload: ReplyCreate):
+    """Add a reply to an existing review. Multiple replies allowed."""
+    return ReplyController.addReply(movie_title, reviewer, review_title, payload)
+
+@routerReview.get("/{movie_title}/{reviewer}/{review_title}/replies", response_model=list[Reply])
+def get_replies(movie_title: str, reviewer: str, review_title: str):
+    """Get all replies for a specific review."""
+    return ReplyController.getReplies(movie_title, reviewer, review_title)
 
 
 routerUser = APIRouter(prefix="/Users", tags=["Users"])

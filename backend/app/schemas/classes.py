@@ -26,6 +26,16 @@ class ReviewCreate(BaseModel):
     title:str
     description:str
     
+class Reply(BaseModel):
+    reviewAuthor: str
+    reviewTitle: str
+    replyAuthor: str
+    replyText: str
+    replyDate: datetime.date
+
+class ReplyCreate(BaseModel):
+    replyAuthor: str
+    replyText: str
 
 # def Movie:
 class Movie(BaseModel):

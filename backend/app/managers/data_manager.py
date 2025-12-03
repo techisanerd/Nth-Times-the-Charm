@@ -1,4 +1,4 @@
-from schemas.classes import Review, Movie, User, Session
+from schemas.classes import Review, Movie, User, Session, Reply
 from pathlib import Path
 from datetime import datetime
 import shutil
@@ -33,6 +33,8 @@ class DataManager():
             for lines in csv.reader(file):
                 if lines[0].startswith("Date of Review"):# skips the first (header) line of reviews
                     continue
+                if len(lines) < 3:
+                    continue
                 reviewDate = datetime.strptime(lines[0], "%d %B %Y").date()
                 reviewer = lines[1]
                 usefulnessVote = int(lines[2])
@@ -43,10 +45,11 @@ class DataManager():
                     rating = -1
                 title = lines[5]
                 description = lines[6]
+                reply = lines[7] if len(lines) > 7 else None
 
                 review = Review(reviewDate=reviewDate, reviewer =  reviewer, 
                                 usefulnessVote=usefulnessVote, totalVotes = totalVotes,
-                                rating=rating, title=title, description=description)
+                                rating=rating, title=title, description=description, reply=reply)
                 reviewList.append(review)
             return reviewList
 
@@ -59,7 +62,26 @@ class DataManager():
                 date = datetime.strftime(review.reviewDate, "%d %B %Y")
                 l = [date, review.reviewer, str(review.usefulnessVote), str(review.totalVotes), str(review.rating), review.title, review.description]
                 writer.writerow(l) 
-        
+    
+
+    def readReplies(self, movie):
+        path = self.moviesFolder / movie / "reviewReplies.json"
+        if not path.exists():
+            return []
+
+        with open(path, "r", encoding="utf8") as f:
+            reply_dicts = json.load(f)
+
+        from schemas.classes import Reply
+        return [Reply(**rd) for rd in reply_dicts]
+
+
+    def writeReplies(self, movie, replies):
+        path = self.moviesFolder / movie / "reviewReplies.json"
+
+        with open(path, "w", encoding="utf8") as f:
+            json.dump([r.dict() for r in replies], f, indent=4)
+
 
     def createMovie(self, movie: Movie) -> bool:
         filepath = f"{movie.title.replace(' ', '_')}"

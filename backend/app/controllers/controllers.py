@@ -3,8 +3,8 @@ from fastapi import HTTPException
 from datetime import datetime
 from managers.data_manager import DataManager
 from managers.managers import UserManager
-from managers.managers import ReviewManager, MovieManager
-from schemas.classes import Review, User,ReviewCreate
+from managers.managers import ReviewManager, MovieManager, ReplyManager, ReviewManager
+from schemas.classes import Review, User, ReviewCreate
 
 class UserController():
 
@@ -47,8 +47,9 @@ class ReviewController():
             raise HTTPException(status_code = 404, detail = "404 User not found")
         if(payload.rating >10 or payload.rating <0):
             raise HTTPException(status_code = 400, detail = "400 Rating needs to be an integer between 0 and 10")
-        if (len(reviewList)>0):
-            raise HTTPException(status_code=409, detail="409 Review with this username and title already exists for this movie") 
+        for r in reviewList:
+            if r.reviewer == payload.reviewer:
+                raise HTTPException(status_code=409, detail="409 Review with this username and title already exists for this movie") 
         return ReviewManager.createReview(movie, datetime.now().date(), payload.reviewer,0,0,payload.rating,
                                        payload.title,payload.description)
 
@@ -68,8 +69,10 @@ class ReviewController():
         reviewList = ReviewController.getReviewsByTitle(movie,username,title)
         if(reviewList == []):
             raise HTTPException(status_code = 404, detail = f"404 Review '{title}' not found")
+        from managers.managers import ReplyManager
         for r in reviewList:
             ReviewManager.deleteReview(movie, r)
+            ReplyManager.deleteRepliesForReview(movie, username, title)
 
     def searchByName(movie:str,title:str):
         reviews = ReviewController.getReviews(movie)
@@ -90,6 +93,34 @@ class ReviewController():
         reviewList = ReviewManager.readReview(movie,username) 
         reviewList = [r for r in reviewList if r.title == title]
         return reviewList
+    
+    @staticmethod
+    def replyToReview(movie: str, reviewer: str, title: str, reply: str):
+        reviewList = ReviewController.getReviewsByTitle(movie, reviewer, title)
+
+        if not reviewList:
+            raise HTTPException(status_code=404, detail="Review not found")
+
+        review = reviewList[0]
+        if review.reply is not None:
+            raise HTTPException(status_code=409, detail="Review already has a reply")
+
+        return ReviewManager.updateReview(movie, review, reply=reply)
+
+class ReplyController:
+    @staticmethod
+    def addReply(movie, reviewAuthor, reviewTitle, payload):
+        from controllers.controllers import ReviewController
+        reviewList = ReviewController.getReviewsByTitle(movie, reviewAuthor, reviewTitle)
+
+        if not reviewList:
+            raise HTTPException(status_code=404, detail="Review not found")
+
+        return ReplyManager.addReply(movie, reviewAuthor, reviewTitle, payload.replyAuthor, payload.replyText)
+
+    @staticmethod
+    def getReplies(movie, reviewAuthor, reviewTitle):
+        return ReplyManager.getReplies(movie, reviewAuthor, reviewTitle)
 
 class MovieController():
 
