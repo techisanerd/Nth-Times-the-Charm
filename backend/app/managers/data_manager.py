@@ -1,4 +1,4 @@
-from schemas.classes import Review, Movie, User, Session, Reply
+from schemas.classes import Review, Movie, User, Session, Admin, Reply
 from pathlib import Path
 from datetime import datetime
 import shutil
@@ -10,6 +10,7 @@ class DataManager():
     dataFolder = Path(__file__).resolve().parent.parent / "data"
     moviesFolder = dataFolder / "Movies"
     userFile = dataFolder / "users.json"
+    adminFile = dataFolder / "admins.json"
     # this one is different as the path will need the movie name added in
     reviewFile = "movieReviews.csv"
     #init raises an error since this is a singleton
@@ -163,21 +164,34 @@ class DataManager():
         shutil.rmtree(filepath)
         return True
     
+    def getUsersData(self, filepath):
+        if os.path.exists(filepath):
+            with open(filepath, "r") as f:
+                return json.load(f)
+    
     def getUsers(self):
         dictList = [] 
-        if os.path.exists(self.userFile):
-            with open(self.userFile, "r") as f:
-                dictList = json.load(f)
+        dictList = self.getUsersData(self.userFile)
 
         #deserialize: create new object for each user in the json dictionary
         userList = [User(**userData) for userData in dictList]
         return userList
+    
+    def getAdmins(self):
+        dictList = [] 
+        dictList = self.getUsersData(self.adminFile)
+        adminList = [Admin(**adminData) for adminData in dictList]
+        return adminList
 
 
     def writeUsers(self, users:list[User]):
         with open(self.userFile, "w") as file:
             #store as a json: each user is converted to a dict(ionary) of its attributes, within the list
             json.dump([user.__dict__ for user in users], file, indent=4)
+
+    def writeAdmins(self, admins:list[Admin]):
+        with open(self.adminFile, "w") as file:
+            json.dump([admin.__dict__ for admin in admins], file, indent=4)
 
     def createReport():
         pass
