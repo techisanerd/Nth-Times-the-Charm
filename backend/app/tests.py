@@ -37,11 +37,11 @@ def testUpdateUser():
     assert UserManager.readUser("TESTUSER") == None and v.name == "NEWTESTUSER"
 
 def testAdminManager():
-    admin = Admin(name="TestAdmin",email="mail@example.com",profilePic="https://profilepic.example.com",passwordHash="0xabcdefg")
+    admin = Admin(name="TestAdmin",email="mail@example.com",profilePicURL="https://profilepic.example.com",password="0xabcdefg")
     AdminManager.writeUserToData(admin)
     u = AdminManager.readAdmin("TestAdmin")
     AdminManager.deleteAdmin("TestAdmin")
-    assert u.name == "TestAdmin" and u.email=="mail@example.com" and u.profilePic=="https://profilepic.example.com" and u.passwordHash == "0xabcdefg"
+    assert u.name == "TestAdmin" and u.email=="mail@example.com" and u.profilePicURL=="https://profilepic.example.com" and u.password == "0xabcdefg"
     assert AdminManager.readAdmin("TestAdmin") == None
 
 def testUserCreation():
