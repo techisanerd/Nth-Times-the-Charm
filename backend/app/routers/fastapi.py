@@ -1,9 +1,11 @@
-from fastapi import APIRouter, status, FastAPI
-from typing import List
+from fastapi import APIRouter, status, Query, FastAPI
+from typing import List, Optional
+from datetime import datetime
 from controllers.controllers import ReviewController,MovieController,UserController
 from managers.managers import MovieManager,ReviewManager, UserManager
 from schemas.classes import Movie,Review,MovieCreate,ReviewCreate,User,UserView
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 
 
 
@@ -71,3 +73,38 @@ def get_user(username):
 def post_user(payload:User):
     """Create a new user. Profile Pic URL must be a valid url from https://api.dicebear.com"""
     return UserController.createUser(payload)
+
+
+routerExport = APIRouter()
+
+ReviewData = [
+    {"movie_title": "Test Movie", "reviewDate": datetime(2023, 1, 10), "reviewer": "Alice", "rating": 7, "description": "Hi"},
+    {"movie_title": "Test Movie", "reviewDate": datetime(2023, 1, 11), "reviewer": "Bob", "rating": 8, "description": "Okay"},
+]
+
+def serialize_record(record: dict) -> dict:
+    out = {}
+    for k, v in record.items():
+        if isinstance(v, datetime):
+            out[k] = v.date().isoformat()
+        else:
+            out[k] = v
+    return out
+
+@routerExport.get("/export/reviews")
+async def export_reviews(movie_title: str = Query(..., description="Title of the movie"), fields: Optional[List[str]] = None):
+    
+    data = [r.copy() for r in ReviewData if r["movie_title"] == movie_title]
+
+    data = [serialize_record(r) for r in data]
+
+    if fields:
+        data = [{key: review[key] for key in fields if key in review} for review in data]
+
+    return JSONResponse(
+        content=data,
+        media_type="application/json",
+        headers={
+            "Content-Disposition": f"attachment; filename=movie_{movie_title}_reviews.json"
+        }
+    )

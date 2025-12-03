@@ -128,6 +128,67 @@ def testSearchReviews():
         reviewTitles.append(r.title)
     assert "hi" in reviewTitles and "no" not in reviewTitles
 
+#2 tests for exporting reviews to json files
+client = TestClient(app)
+
+ReviewData = [
+    Review(
+        reviewDate=datetime(2023, 1, 10).strftime("%Y-%m-%d"),
+        reviewer="Alice",
+        usefulnessVote=5,
+        totalVotes=5,
+        rating=7,
+        title="Review Title",
+        description="Hi"
+    ),
+    Review(
+        reviewDate=datetime(2023, 1, 11).strftime("%Y-%m-%d"),
+        reviewer="Bob",
+        usefulnessVote=3,
+        totalVotes=5,
+        rating=8,
+        title="Test Title",
+        description="Okay"
+    )
+]
+
+movies = [
+    {"title": "Test Movie", "reviews": [
+        {"reviewer": "Alice", "rating": 7},
+        {"reviewer": "Bob", "rating": 8}
+    ]},
+]
+
+def test_export_reviews_no_fields():
+    response = client.get("/export/reviews?movie_title=Test Movie")
+    assert response.status_code == 200
+    assert response.headers["Content-Disposition"] == "attachment; filename=movie_Test Movie_reviews.json"
+    assert response.json() == [
+    {"movie_title": "Test Movie", "reviewDate": "2023-01-10", "reviewer": "Alice", "rating": 7, "description": "Hi"},
+    {"movie_title": "Test Movie", "reviewDate": "2023-01-11", "reviewer": "Bob", "rating": 8, "description": "Okay"},
+]
+
+def test_export_reviews_with_fields():
+    response = client.get("/export/reviews?movie_title=Test Movie&fields=reviewer&fields=rating")
+    assert response.status_code == 200
+    assert response.headers["Content-Disposition"] == "attachment; filename=movie_Test Movie_reviews.json"
+    assert response.json() == [
+    {
+        "movie_title": "Test Movie",
+        "reviewDate": "2023-01-10",
+        "reviewer": "Alice",
+        "rating": 7,
+        "description": "Hi"
+    },
+    {
+        "movie_title": "Test Movie",
+        "reviewDate": "2023-01-11",
+        "reviewer": "Bob",
+        "rating": 8,
+        "description": "Okay"
+    }
+]
+
 #3 tests for searchMovies by tag using Equivalence Partitioning
 def testSearchMoviesNoTag():
     foundMovies = MovieController.searchByTags()
