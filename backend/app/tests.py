@@ -37,7 +37,7 @@ def testUpdateUser():
     assert UserManager.readUser("TESTUSER") == None and v.name == "NEWTESTUSER"
 
 def testAdminManager():
-    admin = Admin(name="TestAdmin",email="mail@example.com",profilePic="https://profilepic.example.com",passwordHash="0xabcdefg")
+    admin = Admin(name="TestAdmin",email="mail@example.com",profilePicURL="https://profilepic.example.com",password="0xabcdefg")
     AdminManager.writeUserToData(admin)
     u = AdminManager.readAdmin("TestAdmin")
     AdminManager.deleteAdmin("TestAdmin")
