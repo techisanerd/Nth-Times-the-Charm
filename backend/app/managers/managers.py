@@ -1,5 +1,5 @@
 from managers.data_manager import DataManager
-from schemas.classes import User, Movie, Review, Session
+from schemas.classes import User, Movie, Review, Session, Admin
 from datetime import datetime
 from pathlib import Path
 
@@ -173,3 +173,32 @@ class SessionManager():
     
     
 
+class AdminManager():
+
+    def readAdmin(name:str):
+        dataMan = DataManager.getInstance()
+        userList = dataMan.getAdmins()
+        for u in userList:
+            if u.name == name:
+                return u 
+        return None
+    
+    def writeUserToData(admin):
+        dataMan = DataManager.getInstance()
+        userList = dataMan.getAdmins()
+        userList.append(admin)
+        dataMan.writeAdmins(userList)
+
+    def updateAdmin(name,admin:Admin):
+        if (AdminManager.readAdmin(name) is not None):
+            AdminManager.deleteAdmin(name)
+            AdminManager.writeUserToData(admin)
+
+    def deleteAdmin(name):
+        dataMan = DataManager.getInstance()
+        userList = dataMan.getAdmins()
+        initialSize = len(userList)
+        userList = [user for user in userList if user.name != name]
+
+        dataMan.writeAdmins(userList)
+        return initialSize < len(userList)

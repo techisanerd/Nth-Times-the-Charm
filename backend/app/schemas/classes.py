@@ -11,6 +11,9 @@ class UserView(BaseModel):
     name:str
     profilePic:str
 
+class Admin(User):
+    pass
+
 class Review(BaseModel):
     reviewDate:datetime.date
     reviewer:str
