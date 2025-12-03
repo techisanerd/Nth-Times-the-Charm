@@ -41,7 +41,7 @@ def testAdminManager():
     AdminManager.writeUserToData(admin)
     u = AdminManager.readAdmin("TestAdmin")
     AdminManager.deleteAdmin("TestAdmin")
-    assert u.name == "TestAdmin" and u.email=="mail@example.com" and u.profilePic=="https://profilepic.example.com" and u.passwordHash == "0xabcdefg"
+    assert u.name == "TestAdmin" and u.email=="mail@example.com" and u.profilePicURL=="https://profilepic.example.com" and u.password == "0xabcdefg"
     assert AdminManager.readAdmin("TestAdmin") == None
 
 def testUserCreation():
