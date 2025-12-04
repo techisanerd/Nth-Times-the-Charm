@@ -871,5 +871,89 @@ def testSortMoviesInvalidOrder():
 
     assert "Order must be 'asc' or 'desc'" in str(excinfo.value)
  
+#sortReview tests
+def testSortReviewsByRatingAsc():
+    reviews = ReviewManager.getReviews("Joker")
+    sortedReviews = ReviewController.sortReviews(reviews, sortBy="rating", order="asc")
+    
+    for i in range(len(sortedReviews) - 1):
+        assert sortedReviews[i].rating <= sortedReviews[i + 1].rating
 
+def testSortReviewsByRatingDesc():
+    reviews = ReviewManager.getReviews("Joker")
+    sortedReviews = ReviewController.sortReviews(reviews, sortBy="rating", order="desc")
 
+    for i in range(len(sortedReviews) - 1):
+        assert sortedReviews[i].rating >= sortedReviews[i + 1].rating
+
+def testSortReviewsByReviewDateAsc():
+    reviews = ReviewManager.getReviews("Morbius")
+    sortedReviews = ReviewController.sortReviews(reviews, sortBy="reviewDate", order="asc")
+    
+    for i in range(len(sortedReviews) - 1):
+        assert sortedReviews[i].reviewDate <= sortedReviews[i + 1].reviewDate
+
+def testSortReviewsByReviewDateDesc():
+    reviews = ReviewManager.getReviews("Morbius")
+    sortedReviews = ReviewController.sortReviews(reviews, sortBy="reviewDate", order="desc")
+
+    for i in range(len(sortedReviews) - 1):
+        assert sortedReviews[i].reviewDate >= sortedReviews[i + 1].reviewDate
+
+def testSortReviewsByTitleAsc():
+    reviews = ReviewManager.getReviews("Pulp Fiction")
+    sortedReviews = ReviewController.sortReviews(reviews, sortBy="title", order="asc")
+    
+    for i in range(len(sortedReviews) - 1):
+        assert sortedReviews[i].title.lower() <= sortedReviews[i + 1].title.lower()
+
+def testSortReviewsByTitleDesc():
+    reviews = ReviewManager.getReviews("Pulp Fiction")
+    sortedReviews = ReviewController.sortReviews(reviews, sortBy="title", order="desc")
+
+    for i in range(len(sortedReviews) - 1):
+        assert sortedReviews[i].title.lower() >= sortedReviews[i + 1].title.lower()
+
+def testSortReviewsByUsefulnessVoteAsc():
+    reviews = ReviewManager.getReviews("Forrest Gump")
+    sortedReviews = ReviewController.sortReviews(reviews, sortBy="usefulnessVote", order="asc")
+    
+    for i in range(len(sortedReviews) - 1):
+        assert sortedReviews[i].usefulnessVote <= sortedReviews[i + 1].usefulnessVote
+
+def testSortReviewsByUsefulnessVoteDesc():
+    reviews = ReviewManager.getReviews("Forrest Gump")
+    sortedReviews = ReviewController.sortReviews(reviews, sortBy="usefulnessVote", order="desc")
+
+    for i in range(len(sortedReviews) - 1):
+        assert sortedReviews[i].usefulnessVote >= sortedReviews[i + 1].usefulnessVote
+
+def testSortReviewsByTotalVotesAsc():
+    reviews = ReviewManager.getReviews("The Dark Knight")
+    sortedReviews = ReviewController.sortReviews(reviews, sortBy="totalVotes", order="asc")
+    
+    for i in range(len(sortedReviews) - 1):
+        assert sortedReviews[i].totalVotes <= sortedReviews[i + 1].totalVotes
+
+def testSortReviewsByTotalVotesDesc():
+    reviews = ReviewManager.getReviews("The Dark Knight")
+    sortedReviews = ReviewController.sortReviews(reviews, sortBy="totalVotes", order="desc")
+
+    for i in range(len(sortedReviews) - 1):
+        assert sortedReviews[i].totalVotes >= sortedReviews[i + 1].totalVotes
+
+def testSortReviewsInvalidSortBy():
+    reviews = ReviewManager.getReviews("Thor Ragnarok")
+    
+    with pytest.raises(ValueError) as excinfo:
+        ReviewController.sortReviews(reviews, sortBy="invalidField", order="asc")
+
+    assert "Invalid sortBy value" in str(excinfo.value)
+
+def testSortReviewsInvalidOrder():
+    reviews = ReviewManager.getReviews("Thor Ragnarok")
+    
+    with pytest.raises(ValueError) as excinfo:
+        ReviewController.sortReviews(reviews, sortBy="rating", order="invalidOrder")
+
+    assert "Order must be 'asc' or 'desc'" in str(excinfo.value)
