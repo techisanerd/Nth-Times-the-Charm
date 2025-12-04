@@ -769,3 +769,107 @@ def testSessionManagerPreventDuplicate(tempSessionFolder):
     SessionManager.createSession("abc123", "bob", t)
     duplicate = SessionManager.createSession("abc123", "bob", t)
     assert duplicate is None
+
+#sortMovies tests
+def testSortMoviesByRatingAsc():
+    movies = MovieController.getMovies()
+    sortedMovies = MovieController.sortMovies(movies, sortBy="rating", order="asc")
+    
+    for i in range(len(sortedMovies) - 1):
+        assert sortedMovies[i].rating <= sortedMovies[i + 1].rating
+
+def testSortMoviesByRatingDesc():
+    movies = MovieController.getMovies()
+    sortedMovies = MovieController.sortMovies(movies, sortBy="rating", order="desc")
+
+    for i in range(len(sortedMovies) - 1):
+        assert sortedMovies[i].rating >= sortedMovies[i + 1].rating
+
+def testSortMoviesByReleaseDateAsc():
+    movies = MovieController.getMovies()
+    sortedMovies = MovieController.sortMovies(movies, sortBy="dateReleased", order="asc")
+    
+    for i in range(len(sortedMovies) - 1):
+        assert sortedMovies[i].dateReleased <= sortedMovies[i + 1].dateReleased
+
+def testSortMoviesByReleaseDateDesc():
+    movies = MovieController.getMovies()
+    sortedMovies = MovieController.sortMovies(movies, sortBy="dateReleased", order="desc")
+
+    for i in range(len(sortedMovies) - 1):
+        assert sortedMovies[i].dateReleased >= sortedMovies[i + 1].dateReleased
+
+def testSortMoviesByTitleAsc():
+    movies = MovieController.getMovies()
+    sortedMovies = MovieController.sortMovies(movies, sortBy="title", order="asc")
+    
+    for i in range(len(sortedMovies) - 1):
+        assert sortedMovies[i].title.lower() <= sortedMovies[i + 1].title
+
+def testSortMoviesByTitleDesc():
+    movies = MovieController.getMovies()
+    sortedMovies = MovieController.sortMovies(movies, sortBy="title", order="desc")
+
+    for i in range(len(sortedMovies) - 1):
+        assert sortedMovies[i].title.lower() >= sortedMovies[i + 1].title
+
+def testSortMoviesByMetaScoreAsc():
+    movies = MovieController.getMovies()
+    sortedMovies = MovieController.sortMovies(movies, sortBy="metaScore", order="asc")
+    
+    for i in range(len(sortedMovies) - 1):
+        assert sortedMovies[i].metaScore <= sortedMovies[i + 1].metaScore
+
+def testSortMoviesByMetaScoreDesc():
+    movies = MovieController.getMovies()
+    sortedMovies = MovieController.sortMovies(movies, sortBy="metaScore", order="desc")
+
+    for i in range(len(sortedMovies) - 1):
+        assert sortedMovies[i].metaScore >= sortedMovies[i + 1].metaScore
+
+def testSortMoviesByRatingCountAsc():
+    movies = MovieController.getMovies()
+    sortedMovies = MovieController.sortMovies(movies, sortBy="ratingCount", order="asc")
+    
+    for i in range(len(sortedMovies) - 1):
+        assert sortedMovies[i].ratingCount <= sortedMovies[i + 1].ratingCount
+
+def testSortMoviesByRatingCountDesc():
+    movies = MovieController.getMovies()
+    sortedMovies = MovieController.sortMovies(movies, sortBy="ratingCount", order="desc")
+
+    for i in range(len(sortedMovies) - 1):
+        assert sortedMovies[i].ratingCount >= sortedMovies[i + 1].ratingCount
+
+def testSortMoviesByDurationAsc():
+    movies = MovieController.getMovies()
+    sortedMovies = MovieController.sortMovies(movies, sortBy="duration", order="asc")
+    
+    for i in range(len(sortedMovies) - 1):
+        assert sortedMovies[i].duration <= sortedMovies[i + 1].duration
+
+def testSortMoviesByDurationDesc():
+    movies = MovieController.getMovies()
+    sortedMovies = MovieController.sortMovies(movies, sortBy="duration", order="desc")
+
+    for i in range(len(sortedMovies) - 1):
+        assert sortedMovies[i].duration >= sortedMovies[i + 1].duration
+
+def testSortMoviesInvalidSortBy():
+    movies = MovieController.getMovies()
+    
+    with pytest.raises(ValueError) as excinfo:
+        MovieController.sortMovies(movies, sortBy="invalidField", order="asc")
+
+    assert "Invalid sortBy value" in str(excinfo.value)
+
+def testSortMoviesInvalidOrder():
+    movies = MovieController.getMovies()
+    
+    with pytest.raises(ValueError) as excinfo:
+        MovieController.sortMovies(movies, sortBy="rating", order="invalidOrder")
+
+    assert "Order must be 'asc' or 'desc'" in str(excinfo.value)
+ 
+
+

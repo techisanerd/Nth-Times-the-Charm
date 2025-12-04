@@ -4,7 +4,7 @@ from datetime import datetime
 from managers.data_manager import DataManager
 from managers.managers import UserManager
 from managers.managers import ReviewManager, MovieManager, AdminManager
-from schemas.classes import Review, User,ReviewCreate, Admin
+from schemas.classes import Review, User, ReviewCreate, Admin, Movie
 
 class UserController():
 
@@ -132,6 +132,31 @@ class MovieController():
             tags += m.actors
         tags = set(tags)
         return tags
+    
+    def sortMovies(movies: list[Movie], sortBy: str, order: str = "asc") -> list[Movie]:
+
+        if sortBy not in ["rating", "dateReleased", "title", "metaScore", "ratingCount", "duration"]:
+            raise ValueError("Invalid sortBy value")
+
+        if order not in ["asc", "desc"]:
+            raise ValueError("Order must be 'asc' or 'desc'")
+        
+        reverse = (order == "desc")
+
+        if sortBy == "rating":
+            sorted_movies = sorted(movies, key=lambda m: m.rating, reverse=reverse)
+        elif sortBy == "dateReleased":
+            sorted_movies = sorted(movies, key=lambda m: m.dateReleased, reverse=reverse)
+        elif sortBy == "title":
+            sorted_movies = sorted(movies, key=lambda m: m.title.lower(), reverse=reverse)
+        elif sortBy == "metaScore":
+            sorted_movies = sorted(movies, key=lambda m: m.metaScore, reverse=reverse)
+        elif sortBy == "ratingCount":
+            sorted_movies = sorted(movies, key=lambda m: m.ratingCount, reverse=reverse)
+        elif sortBy == "duration":
+            sorted_movies = sorted(movies, key=lambda m: m.duration, reverse=reverse)
+
+        return sorted_movies
      
 class AdminController():
 
