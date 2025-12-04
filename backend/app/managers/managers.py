@@ -60,7 +60,7 @@ class UserManager():
         userList = [user for user in userList if user.name != name]
 
         dataMan.writeUsers(userList)
-        return initialSize < len(userList)
+        return initialSize > len(userList)
     
 class ReviewManager():
     def createReview(movie, reviewDate:datetime.date, reviewer, usefulnessVote:int, totalVotes:int, rating:int, 
