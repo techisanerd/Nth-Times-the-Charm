@@ -957,3 +957,22 @@ def testSortReviewsInvalidOrder():
         ReviewController.sortReviews(reviews, sortBy="rating", order="invalidOrder")
 
     assert "Order must be 'asc' or 'desc'" in str(excinfo.value)
+
+def testDeleteAccount():
+    user = User(name="TestUser",email="delete@gmail.com", profilePicURL="https://profilepic.example.com",password="kittens123")
+    UserController.createUser(user)
+
+    user = UserManager.readUser("TestUser")
+    assert user is not None
+    assert user.name == "TestUser"
+
+    result = UserController.deleteAccount("TestUser")
+    assert result is True
+
+    user = UserManager.readUser("TestUser")
+    assert user is None
+
+def testDeleteAccountNotFound():
+    with pytest.raises(ValueError) as excinfo:
+        UserController.deleteAccount("NonExistentUser")
+    assert "User not found" in str(excinfo.value)

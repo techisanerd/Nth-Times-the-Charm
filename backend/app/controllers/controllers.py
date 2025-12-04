@@ -38,6 +38,18 @@ class UserController():
     def verifyPassword(user, password: str) -> bool:
         user = UserManager.readUser(user)
         return bcrypt.checkpw(password.encode(), user.password.encode())
+    
+    def deleteAccount(name:str):
+        user = UserManager.readUser(name)
+        if user is None:
+            raise ValueError("User not found")
+        
+        success = UserManager.deleteUser(name)
+
+        if not success:
+            raise ValueError("Failed to delete user")
+        
+        return True
 
 class ReviewController():
 
