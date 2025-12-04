@@ -91,6 +91,27 @@ class ReviewController():
         reviewList = [r for r in reviewList if r.title == title]
         return reviewList
 
+    def sortReviews(reviews: list[Review], sortBy: str, order: str = "asc") -> list[Review]:
+        if sortBy not in ['rating', 'reviewDate', 'title', 'usefulnessVote', 'totalVotes']:
+            raise ValueError("Invalid sortBy value")
+        if order not in ['asc', 'desc']:
+            raise ValueError("Order must be 'asc' or 'desc'")
+        
+        reverse = (order == "desc")
+
+        if sortBy == 'rating':
+            sorted_reviews = sorted(reviews, key=lambda r: r.rating, reverse=reverse)
+        elif sortBy == 'reviewDate':
+            sorted_reviews = sorted(reviews, key=lambda r: r.reviewDate, reverse=reverse)
+        elif sortBy == 'title':
+            sorted_reviews = sorted(reviews, key=lambda r: r.title.lower(), reverse=reverse)
+        elif sortBy == 'usefulnessVote':
+            sorted_reviews = sorted(reviews, key=lambda r: r.usefulnessVote, reverse=reverse)
+        elif sortBy == 'totalVotes':
+            sorted_reviews = sorted(reviews, key=lambda r: r.totalVotes, reverse=reverse)
+        
+        return sorted_reviews
+    
 class MovieController():
 
     def getMovie(title):
@@ -134,7 +155,6 @@ class MovieController():
         return tags
     
     def sortMovies(movies: list[Movie], sortBy: str, order: str = "asc") -> list[Movie]:
-
         if sortBy not in ["rating", "dateReleased", "title", "metaScore", "ratingCount", "duration"]:
             raise ValueError("Invalid sortBy value")
 
