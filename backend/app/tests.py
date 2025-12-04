@@ -1002,7 +1002,7 @@ def testGetReports(tempReportFolder):
         reviewTitle = "bad bad movie",
         reporter = "User2",
         reason = "Inappropriate content",
-        timestamp = datetime(2022, 6, 12, 10, 0, 0)
+        reportDate = datetime(2022, 6, 12, 10, 0, 0)
     )
     dm.writeReports([report1])
 
@@ -1014,7 +1014,7 @@ def testGetReports(tempReportFolder):
     assert reports[0].reviewTitle == "bad bad movie"
     assert reports[0].reporter == "User2"
     assert reports[0].reason == "Inappropriate content"
-    assert reports[0].timestamp == datetime(2022, 6, 12, 10, 0, 0)
+    assert reports[0].reportDate == datetime(2022, 6, 12, 10, 0, 0)
 
 def testWriteReports(tempReportFolder):
     dm = tempReportFolder
@@ -1026,7 +1026,7 @@ def testWriteReports(tempReportFolder):
         reviewTitle = "bad bad movie",
         reporter = "User2",
         reason = "Inappropriate content",
-        timestamp = datetime(2022, 6, 12, 10, 0, 0)
+        reportDate = datetime(2022, 6, 12, 10, 0, 0)
     )
     report2 = Report(
         reportId = "testId2",
@@ -1035,7 +1035,7 @@ def testWriteReports(tempReportFolder):
         reviewTitle = "blah blah blah",
         reporter = "User4",
         reason = "Spam",
-        timestamp = datetime(2023, 1, 5, 15, 30, 0)
+        reportDate = datetime(2023, 1, 5, 15, 30, 0)
     )
     dm.writeReports([report1, report2])
 
@@ -1061,7 +1061,7 @@ def testDeleteReports(tempReportFolder):
         reviewTitle = "bad bad movie",
         reporter = "User2",
         reason = "Inappropriate content",
-        timestamp = datetime(2022, 6, 12, 10, 0, 0)
+        reportDate = datetime(2022, 6, 12, 10, 0, 0)
     )
     report2 = Report(
         reportId = "testId2",
@@ -1070,7 +1070,7 @@ def testDeleteReports(tempReportFolder):
         reviewTitle = "blah blah blah",
         reporter = "User4",
         reason = "Spam",
-        timestamp = datetime(2023, 1, 5, 15, 30, 0)
+        reportDate = datetime(2023, 1, 5, 15, 30, 0)
     )
     dm.writeReports([report1, report2])
 
@@ -1091,7 +1091,7 @@ def testDeleteReportNotFound(tempReportFolder):
         reviewTitle = "bad bad movie",
         reporter = "User2",
         reason = "Inappropriate content",
-        timestamp = datetime(2022, 6, 12, 10, 0, 0)
+        reportDate = datetime(2022, 6, 12, 10, 0, 0)
     )
     dm.writeReports([report1])
 
