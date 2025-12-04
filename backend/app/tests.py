@@ -804,14 +804,14 @@ def testSortMoviesByTitleAsc():
     sortedMovies = MovieController.sortMovies(movies, sortBy="title", order="asc")
     
     for i in range(len(sortedMovies) - 1):
-        assert sortedMovies[i].title.lower() <= sortedMovies[i + 1].title
+        assert sortedMovies[i].title.lower() <= sortedMovies[i + 1].title.lower()
 
 def testSortMoviesByTitleDesc():
     movies = MovieManager.getMovies()
     sortedMovies = MovieController.sortMovies(movies, sortBy="title", order="desc")
 
     for i in range(len(sortedMovies) - 1):
-        assert sortedMovies[i].title.lower() >= sortedMovies[i + 1].title
+        assert sortedMovies[i].title.lower() >= sortedMovies[i + 1].title.lower()
 
 def testSortMoviesByMetaScoreAsc():
     movies = MovieManager.getMovies()
