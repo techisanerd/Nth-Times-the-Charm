@@ -1,5 +1,6 @@
-import datetime
+import datetime, uuid
 from pydantic import BaseModel
+
 class User(BaseModel):
     name:str
     email:str
@@ -103,4 +104,14 @@ class Session:
             created=datetime.datetime.fromisoformat(data['created'])
         )
 
-   
+class Report(BaseModel):
+    reportId: str
+    movie: str
+    reviewer: str
+    reviewTitle: str
+    reporter: str
+    reason: str
+    reportDate: datetime.datetime
+
+
+

@@ -1,4 +1,4 @@
-from schemas.classes import Review, Movie, User, Session, Admin
+from schemas.classes import Review, Movie, User, Session, Admin, Report
 from pathlib import Path
 from datetime import datetime
 import shutil
@@ -171,11 +171,8 @@ class DataManager():
         with open(self.adminFile, "w") as file:
             json.dump([admin.__dict__ for admin in admins], file, indent=4)
 
-    def createReport():
-        pass
-
     #session functions
-
+    
     def _loadSession(self) -> list:
         sessionFile = self.dataFolder / "sessions.json"
 
@@ -228,10 +225,7 @@ class DataManager():
                 return s
 
         return None    
-    
-    def deleteReport():
-        pass
-    
+ 
 
     def getMovies(self) -> list:
         movies = []
@@ -248,7 +242,33 @@ class DataManager():
         return movies
 
 
-        # get all reports in database
-    def getReports():
-        pass
+    #report review functions
+    def getReports(self):
+        reportFile = self.dataFolder / "reports.json"
+
+        if not reportFile.exists():
+            return []
+
+        with open(reportFile, 'r', encoding="utf-8") as f:
+            dictList = json.load(f)
+            return [Report(**reportData) for reportData in dictList]
+
+        
+    def writeReports(self, reports:list):
+        reportFile = self.dataFolder / "reports.json"
+
+        with open(reportFile, 'w', encoding="utf-8") as f:
+            json.dump([report.__dict__ for report in reports], f, indent=4, default=str)
+
+    def deleteReports(self, reportId: str) -> bool:
+        reports = self.getReports()
+
+        for i, report in enumerate(reports):
+            if report.reportId == reportId:
+                reports.pop(i)
+                self.writeReports(reports)
+                return True
+        return False
+    
+
 
