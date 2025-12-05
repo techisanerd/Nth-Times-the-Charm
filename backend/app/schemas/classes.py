@@ -3,7 +3,7 @@ from pydantic import BaseModel
 class User(BaseModel):
     name:str
     email:str
-    profilePicURL:str
+    profilePicURL:str = None
     password:str
 
 
@@ -113,4 +113,11 @@ class Session:
             created=datetime.datetime.fromisoformat(data['created'])
         )
 
+    
+
+class ProfilePic(BaseModel):
+    profilePicURL:str
+    themes:list[str]
+
+   
    

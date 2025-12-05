@@ -5,6 +5,7 @@ from managers.data_manager import DataManager
 from managers.managers import UserManager
 from managers.managers import ReviewManager, MovieManager, AdminManager, ReplyManager
 from schemas.classes import Review, User, ReviewCreate, Admin, Movie
+from random import randrange
 
 class UserController():
 
@@ -13,6 +14,12 @@ class UserController():
             raise HTTPException(status_code = 400, detail = "400 Username already in use")
         if(len(payload.password)<8):
             raise HTTPException(status_code = 400, detail = "400 Password should be 8 or more characters")
+        if(payload.profilePicURL == None):
+            payload.profilePicURL = ProfilePicController.getProfilePic()
+        else:
+            picURLs = ProfilePicController.searchByTags()
+            if(payload.profilePicURL not in picURLs):
+                raise HTTPException(status_code = 400, detail = "400 URL must be from our list of accepted profile URLs")
         hashedPassword = UserController.hashPassword(payload.password)
         return UserManager.createUser(payload.name,payload.email,payload.profilePicURL,hashedPassword)
     
@@ -207,6 +214,46 @@ class MovieController():
 
         return sorted_movies
      
+class ProfilePicController():
+
+    def getProfilePic(tags:list=[]):
+        pics = ProfilePicController.searchByTags(tags)
+        if(len(pics)==0):
+            raise HTTPException(status_code = 404, detail = f"404 Picture with all tags not found")
+        if(len(pics)>1):
+            randomNum = randrange(0,len(pics))
+            return pics[randomNum]
+        return pics[0]
+    
+
+    def searchByTags(tags:list=[]):
+        dataMan = DataManager.getInstance()
+        pics = dataMan.getProfilePics()
+        dm = DataManager.getInstance()
+        picURLs = []
+        for p in dm.getProfilePics():
+            picURLs.append(p.profilePicURL)
+        if(len(tags)==0):
+            return picURLs
+        foundPics = []
+        for t in tags:
+            for p in pics:
+                if (t in p.themes):
+                    foundPics.append(p.profilePicURL)
+                else:
+                    if(p.profilePicURL in foundPics):
+                        foundPics.remove(p.profilePicURL)
+        foundPics = list(set(foundPics))
+        return foundPics
+    
+    def getAllTags():
+        dataMan = DataManager.getInstance()
+        tags = []
+        pics = dataMan.getProfilePics()
+        for p in pics:
+            tags += p.themes
+        tags = set(tags)
+        return tags
 class AdminController():
 
     def createAdmin(payload:Admin):
