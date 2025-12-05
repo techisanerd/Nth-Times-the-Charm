@@ -11,7 +11,7 @@ from datetime import datetime, date
 from managers.data_manager import DataManager
 from controllers.controllers import UserController, ReviewController, MovieController, ProfilePicController
 from managers.managers import UserManager, ReviewManager,MovieManager, SessionManager, AdminManager
-from schemas.classes import Movie, Review,Session,ReviewCreate,User, Admin,ProfilePic
+from schemas.classes import Movie, Review,Session,ReviewCreate,User, Admin, Report, ProfilePic
 from main import app
 
 originalMoviesFolder = " "
@@ -1011,3 +1011,134 @@ def testDeleteAccountNotFound():
     with pytest.raises(ValueError) as excinfo:
         UserController.deleteAccount("NonExistentUser")
     assert "User not found" in str(excinfo.value)
+
+#tests for report review
+@pytest.fixture
+def tempReportFolder(tmp_path):
+    folder = tmp_path / "tempData"
+    folder.mkdir()
+    dm = DataManager.getInstance()
+    dm.dataFolder = folder
+
+    return dm
+
+def testGetReportsEmpty(tempReportFolder):
+    dm = tempReportFolder
+    reports = dm.getReports()
+    assert reports == []
+
+def testGetReports(tempReportFolder):
+    dm = tempReportFolder
+    
+    report1 = Report(
+        reportId = "testId1",
+        movie = "Joker",
+        reviewer = "User1",
+        reviewTitle = "bad bad movie",
+        reporter = "User2",
+        reason = "Inappropriate content",
+        reportDate = datetime(2022, 6, 12, 10, 0, 0)
+    )
+    dm.writeReports([report1])
+
+    reports = dm.getReports()
+    assert len(reports) == 1
+    assert reports[0].reportId == "testId1"
+    assert reports[0].movie == "Joker"
+    assert reports[0].reviewer == "User1"
+    assert reports[0].reviewTitle == "bad bad movie"
+    assert reports[0].reporter == "User2"
+    assert reports[0].reason == "Inappropriate content"
+    assert reports[0].reportDate == datetime(2022, 6, 12, 10, 0, 0)
+
+def testWriteReports(tempReportFolder):
+    dm = tempReportFolder
+    
+    report1 = Report(
+        reportId = "testId1",
+        movie = "Joker",
+        reviewer = "User1",
+        reviewTitle = "bad bad movie",
+        reporter = "User2",
+        reason = "Inappropriate content",
+        reportDate = datetime(2022, 6, 12, 10, 0, 0)
+    )
+    report2 = Report(
+        reportId = "testId2",
+        movie = "Morbius",
+        reviewer = "User3",
+        reviewTitle = "blah blah blah",
+        reporter = "User4",
+        reason = "Spam",
+        reportDate = datetime(2023, 1, 5, 15, 30, 0)
+    )
+    dm.writeReports([report1, report2])
+
+    reportFile = dm.dataFolder / "reports.json"
+    assert reportFile.exists()
+
+    with open(reportFile, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    
+    assert len(data) == 2
+    assert data[0]['reportId'] == "testId1"
+    assert data[1]['reportId'] == "testId2"
+    assert data[0]['movie'] == "Joker"
+    assert data[1]['movie'] == "Morbius"
+
+def testDeleteReports(tempReportFolder):
+    dm = tempReportFolder
+    
+    report1 = Report(
+        reportId = "testId1",
+        movie = "Joker",
+        reviewer = "User1",
+        reviewTitle = "bad bad movie",
+        reporter = "User2",
+        reason = "Inappropriate content",
+        reportDate = datetime(2022, 6, 12, 10, 0, 0)
+    )
+    report2 = Report(
+        reportId = "testId2",
+        movie = "Morbius",
+        reviewer = "User3",
+        reviewTitle = "blah blah blah",
+        reporter = "User4",
+        reason = "Spam",
+        reportDate = datetime(2023, 1, 5, 15, 30, 0)
+    )
+    dm.writeReports([report1, report2])
+
+    result = dm.deleteReports("testId1")
+    assert result is True
+
+    reports = dm.getReports()
+    assert len(reports) == 1
+    assert reports[0].reportId == "testId2"
+
+def testDeleteReportNotFound(tempReportFolder):
+    dm = tempReportFolder
+    
+    report1 = Report(
+        reportId = "testId1",
+        movie = "Joker",
+        reviewer = "User1",
+        reviewTitle = "bad bad movie",
+        reporter = "User2",
+        reason = "Inappropriate content",
+        reportDate = datetime(2022, 6, 12, 10, 0, 0)
+    )
+    dm.writeReports([report1])
+
+    result = dm.deleteReports("weebleworble")
+    assert result is False
+
+    reports = dm.getReports()
+    assert len(reports) == 1
+    assert reports[0].reportId == "testId1"
+
+def testDeleteReportEmptyList(tempReportFolder):
+    dm = tempReportFolder
+
+    result = dm.deleteReports("weebleworble")
+    assert result is False
