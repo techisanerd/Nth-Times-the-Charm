@@ -29,6 +29,13 @@ class ReviewCreate(BaseModel):
     rating:int
     title:str
     description:str
+
+class AdminWarning(BaseModel):
+    reviewer:str
+    admin:str
+    reviewTitle:str
+    reviewMovie:str
+    warningDescription:str
     
 class Reply(BaseModel):
     reviewAuthor: str
