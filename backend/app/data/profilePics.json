@@ -1,0 +1,26 @@
+[
+    {
+        "profilePicURL": "https://api.dicebear.com/9.x/icons/svg",
+        "themes": ["Simple","Objects","Pastel"]
+    },
+    {
+        "profilePicURL": "https://api.dicebear.com/9.x/adventurer/svg",
+        "themes": ["People","Colorful","Fantasy"]
+    },
+    {
+        "profilePicURL": "https://api.dicebear.com/9.x/shapes/svg",
+        "themes": ["Simple","Colorful","Abstract"]
+    },
+    {
+        "profilePicURL": "https://api.dicebear.com/9.x/bottts/svg",
+        "themes": ["Robots","Happy","Sci-Fi"]
+    },
+    {
+        "profilePicURL": "https://api.dicebear.com/9.x/open-peeps/svg",
+        "themes": ["People","Colorful"]
+    },
+    {
+        "profilePicURL": "https://api.dicebear.com/9.x/rings/svg",
+        "themes": ["Simple","Sci-Fi","Abstract"]
+    }
+]

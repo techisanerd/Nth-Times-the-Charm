@@ -4,7 +4,7 @@ from pydantic import BaseModel
 class User(BaseModel):
     name:str
     email:str
-    profilePicURL:str
+    profilePicURL:str = None
     password:str
 
 
@@ -30,6 +30,16 @@ class ReviewCreate(BaseModel):
     title:str
     description:str
     
+class Reply(BaseModel):
+    reviewAuthor: str
+    reviewTitle: str
+    replyAuthor: str
+    replyText: str
+    replyDate: datetime.date
+
+class ReplyCreate(BaseModel):
+    replyAuthor: str
+    replyText: str
 
 # def Movie:
 class Movie(BaseModel):
@@ -115,3 +125,11 @@ class Report(BaseModel):
 
 
 
+    
+
+class ProfilePic(BaseModel):
+    profilePicURL:str
+    themes:list[str]
+
+   
+   
