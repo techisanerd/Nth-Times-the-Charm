@@ -1,5 +1,5 @@
 from managers.data_manager import DataManager
-from schemas.classes import User, Movie, Review, Session, Admin, AdminWarning
+from schemas.classes import User, Movie, Review, Session, Admin, AdminWarning, Reply
 from datetime import datetime
 from pathlib import Path
 
@@ -113,19 +113,51 @@ class ReviewManager():
     def deleteReview(movie, review:Review) -> bool:
         dataMan = DataManager.getInstance()
         reviewList = dataMan.readReviews(movie)
-        
-        initialSize = len(reviewList)
-        for r in reviewList:
-            if (r.reviewer == review.reviewer and r.title == review.title):
-                reviewList.remove(r)
-        dataMan.writeReviews(movie,reviewList)
-        return initialSize > len(reviewList)
+
+        newReviewList = [
+        r for r in reviewList 
+        if not (r.reviewer == review.reviewer and r.title == review.title)]
+
+        dataMan.writeReviews(movie, newReviewList)
+        return len(newReviewList) < len(reviewList)
     
 
     def getReviews(movie):
         dataMan = DataManager.getInstance()
         return dataMan.readReviews(movie)
- 
+
+
+class ReplyManager:
+    @staticmethod
+    def addReply(movie, reviewAuthor, reviewTitle, replyAuthor, replyText):
+        dataMan = DataManager.getInstance()
+        replies = dataMan.readReplies(movie)
+
+        newReply = Reply(reviewAuthor=reviewAuthor, reviewTitle=reviewTitle, replyAuthor=replyAuthor, replyText=replyText, replyDate=datetime.now().date())
+        replies.append(newReply)
+        dataMan.writeReplies(movie, replies)
+        return newReply
+    
+    @staticmethod
+    def getReplies(movie, reviewAuthor, reviewTitle):
+        dataMan = DataManager.getInstance()
+        replies = dataMan.readReplies(movie)
+        return [
+            r for r in replies
+            if r.reviewAuthor == reviewAuthor and r.reviewTitle == reviewTitle]
+    
+    @staticmethod
+    def deleteRepliesForReview(movie, reviewAuthor, reviewTitle):
+        """Called automatically if a review is deleted"""
+        dataMan = DataManager.getInstance()
+        replies = dataMan.readReplies(movie)
+
+        replies = [
+            r for r in replies
+            if not (r.reviewAuthor == reviewAuthor and r.reviewTitle == reviewTitle)]
+        dataMan.writeReplies(movie, replies)
+
+
 class MovieManager():
     pass
 

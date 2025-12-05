@@ -1,9 +1,10 @@
-import datetime
+import datetime, uuid
 from pydantic import BaseModel
+
 class User(BaseModel):
     name:str
     email:str
-    profilePicURL:str
+    profilePicURL:str = None
     password:str
 
 
@@ -36,6 +37,16 @@ class AdminWarning(BaseModel):
     reviewMovie:str
     warningDescription:str
     
+class Reply(BaseModel):
+    reviewAuthor: str
+    reviewTitle: str
+    replyAuthor: str
+    replyText: str
+    replyDate: datetime.date
+
+class ReplyCreate(BaseModel):
+    replyAuthor: str
+    replyText: str
 
 # def Movie:
 class Movie(BaseModel):
@@ -110,4 +121,22 @@ class Session:
             created=datetime.datetime.fromisoformat(data['created'])
         )
 
+class Report(BaseModel):
+    reportId: str
+    movie: str
+    reviewer: str
+    reviewTitle: str
+    reporter: str
+    reason: str
+    reportDate: datetime.datetime
+
+
+
+    
+
+class ProfilePic(BaseModel):
+    profilePicURL:str
+    themes:list[str]
+
+   
    
