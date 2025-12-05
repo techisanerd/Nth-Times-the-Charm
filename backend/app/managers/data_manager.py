@@ -1,4 +1,4 @@
-from schemas.classes import Review, Movie, User, Session, Admin
+from schemas.classes import Review, Movie, User, Session, Admin, Report, ProfilePic, Reply
 from pathlib import Path
 from datetime import datetime
 import shutil
@@ -10,7 +10,9 @@ class DataManager():
     dataFolder = Path(__file__).resolve().parent.parent / "data"
     moviesFolder = dataFolder / "Movies"
     userFile = dataFolder / "users.json"
+    profilePicsFile = dataFolder / "profilePics.json"
     adminFile = dataFolder / "admins.json"
+    warningFile = dataFolder / "userWarnings.json"
     # this one is different as the path will need the movie name added in
     reviewFile = "movieReviews.csv"
     #init raises an error since this is a singleton
@@ -34,6 +36,8 @@ class DataManager():
             for lines in csv.reader(file):
                 if lines[0].startswith("Date of Review"):# skips the first (header) line of reviews
                     continue
+                if len(lines) < 3:
+                    continue
                 reviewDate = datetime.strptime(lines[0], "%d %B %Y").date()
                 reviewer = lines[1]
                 usefulnessVote = int(lines[2])
@@ -44,10 +48,11 @@ class DataManager():
                     rating = -1
                 title = lines[5]
                 description = lines[6]
+                reply = lines[7] if len(lines) > 7 else None
 
                 review = Review(reviewDate=reviewDate, reviewer =  reviewer, 
                                 usefulnessVote=usefulnessVote, totalVotes = totalVotes,
-                                rating=rating, title=title, description=description)
+                                rating=rating, title=title, description=description, reply=reply)
                 reviewList.append(review)
             return reviewList
 
@@ -60,7 +65,26 @@ class DataManager():
                 date = datetime.strftime(review.reviewDate, "%d %B %Y")
                 l = [date, review.reviewer, str(review.usefulnessVote), str(review.totalVotes), str(review.rating), review.title, review.description]
                 writer.writerow(l) 
-        
+    
+
+    def readReplies(self, movie):
+        path = self.moviesFolder / movie / "reviewReplies.json"
+        if not path.exists():
+            return []
+
+        with open(path, "r", encoding="utf8") as f:
+            reply_dicts = json.load(f)
+
+        from schemas.classes import Reply
+        return [Reply(**rd) for rd in reply_dicts]
+
+
+    def writeReplies(self, movie, replies):
+        path = self.moviesFolder / movie / "reviewReplies.json"
+
+        with open(path, "w", encoding="utf8") as f:
+            json.dump([r.dict() for r in replies], f, indent=4)
+
 
     def createMovie(self, movie: Movie) -> bool:
         filepath = f"{movie.title.replace(' ', '_')}"
@@ -142,14 +166,14 @@ class DataManager():
         shutil.rmtree(filepath)
         return True
     
-    def getUsersData(self, filepath):
+    def getData(self, filepath):
         if os.path.exists(filepath):
             with open(filepath, "r") as f:
                 return json.load(f)
     
     def getUsers(self):
         dictList = [] 
-        dictList = self.getUsersData(self.userFile)
+        dictList = self.getData(self.userFile)
 
         #deserialize: create new object for each user in the json dictionary
         userList = [User(**userData) for userData in dictList]
@@ -157,25 +181,28 @@ class DataManager():
     
     def getAdmins(self):
         dictList = [] 
-        dictList = self.getUsersData(self.adminFile)
+        dictList = self.getData(self.adminFile)
         adminList = [Admin(**adminData) for adminData in dictList]
         return adminList
+    
+    def writeData(self, filepath, items:list):
+        with open(filepath, "w") as file:
+            json.dump([item.__dict__ for item in items], file, indent=4)
 
 
     def writeUsers(self, users:list[User]):
-        with open(self.userFile, "w") as file:
+        self.writeData(self.userFile, users)
+        #with open(self.userFile, "w") as file:
             #store as a json: each user is converted to a dict(ionary) of its attributes, within the list
-            json.dump([user.__dict__ for user in users], file, indent=4)
+            #json.dump([user.__dict__ for user in users], file, indent=4)
 
     def writeAdmins(self, admins:list[Admin]):
-        with open(self.adminFile, "w") as file:
-            json.dump([admin.__dict__ for admin in admins], file, indent=4)
-
-    def createReport():
-        pass
+        self.writeData(self.adminFile, admins)
+        #with open(self.adminFile, "w") as file:
+            #json.dump([admin.__dict__ for admin in admins], file, indent=4)
 
     #session functions
-
+    
     def _loadSession(self) -> list:
         sessionFile = self.dataFolder / "sessions.json"
 
@@ -207,6 +234,28 @@ class DataManager():
         self._writeSession(sessions)
         return True
     
+       
+    def deleteSession(self, token: str) -> bool:
+        sessions = self._loadSession()
+        initialCount = len(sessions)
+
+        sessions = [s for s in sessions if s.token != token]
+
+        if len(sessions) == initialCount:
+            return False
+
+        self._writeSession(sessions)
+        return True
+
+    def getSession(self, token: str):
+        sessions = self._loadSession()
+
+        for s in sessions:
+            if s.token == token:
+                return s
+
+        return None    
+ 
 
     def getMovies(self) -> list:
         movies = []
@@ -223,7 +272,42 @@ class DataManager():
         return movies
 
 
-        # get all reports in database
-    def getReports():
-        pass
+    #report review functions
+    def getReports(self):
+        reportFile = self.dataFolder / "reports.json"
+
+        if not reportFile.exists():
+            return []
+
+        with open(reportFile, 'r', encoding="utf-8") as f:
+            dictList = json.load(f)
+            return [Report(**reportData) for reportData in dictList]
+
+        
+    def writeReports(self, reports:list):
+        reportFile = self.dataFolder / "reports.json"
+
+        with open(reportFile, 'w', encoding="utf-8") as f:
+            json.dump([report.__dict__ for report in reports], f, indent=4, default=str)
+
+    def deleteReports(self, reportId: str) -> bool:
+        reports = self.getReports()
+
+        for i, report in enumerate(reports):
+            if report.reportId == reportId:
+                reports.pop(i)
+                self.writeReports(reports)
+                return True
+        return False
+    
+
+
+
+    def getProfilePics(self):
+        dictList = [] 
+        if os.path.exists(self.profilePicsFile):
+            with open(self.profilePicsFile, "r") as f:
+                dictList = json.load(f)
+        picList = [ProfilePic(**picData) for picData in dictList]
+        return picList
 

@@ -1,11 +1,11 @@
-import datetime
+import datetime, uuid
 from pydantic import BaseModel
 import hashlib
 
 class User(BaseModel):
     name:str
     email:str
-    profilePicURL:str
+    profilePicURL:str = None
     password:str
 
 
@@ -30,7 +30,24 @@ class ReviewCreate(BaseModel):
     rating:int
     title:str
     description:str
+
+class AdminWarning(BaseModel):
+    reviewer:str
+    admin:str
+    reviewTitle:str
+    reviewMovie:str
+    warningDescription:str
     
+class Reply(BaseModel):
+    reviewAuthor: str
+    reviewTitle: str
+    replyAuthor: str
+    replyText: str
+    replyDate: datetime.date
+
+class ReplyCreate(BaseModel):
+    replyAuthor: str
+    replyText: str
 
 # def Movie:
 class Movie(BaseModel):
@@ -122,3 +139,22 @@ class Session:
         return hashlib.sha256(f"{username}{datetime.datetime.now()}".encode()).hexdigest()
 
 
+class Report(BaseModel):
+    reportId: str
+    movie: str
+    reviewer: str
+    reviewTitle: str
+    reporter: str
+    reason: str
+    reportDate: datetime.datetime
+
+
+
+    
+
+class ProfilePic(BaseModel):
+    profilePicURL:str
+    themes:list[str]
+
+   
+   

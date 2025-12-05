@@ -5,11 +5,12 @@ from datetime import date, datetime
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from pathlib import Path
-
+import random
+from datetime import datetime, date
 from managers.data_manager import DataManager
-from controllers.controllers import UserController, ReviewController, MovieController
-from managers.managers import UserManager, ReviewManager,MovieManager, SessionManager, AdminManager
-from schemas.classes import Movie, Review,Session,ReviewCreate,User, Admin
+from controllers.controllers import UserController, ReviewController, MovieController, ProfilePicController
+from managers.managers import UserManager, ReviewManager,MovieManager, SessionManager, AdminManager, WarningManager
+from schemas.classes import Movie, Review,Session,ReviewCreate,User, Admin, Report, ProfilePic, AdminWarning
 from main import app
 from routers.fastapi import routerSession
 
@@ -45,23 +46,23 @@ def testAdminManager():
     assert AdminManager.readAdmin("TestAdmin") == None
 
 def testUserCreation():
-    user = User(name="TestUser",email="mail@example.com",profilePicURL="https://profilepic.example.com",password="PlainTextPassword")
+    user = User(name="TestUser",email="mail@example.com",password="PlainTextPassword")
     UserController.createUser(user)
     u = UserManager.readUser("TestUser")
-    assert u.name == "TestUser" and u.email == "mail@example.com" and u.profilePicURL == "https://profilepic.example.com"
+    assert u.name == "TestUser" and u.email == "mail@example.com" and u.profilePicURL in ProfilePicController.searchByTags()
     assert UserController.verifyPassword("TestUser","PlainTextPassword")
     UserManager.deleteUser("TestUser")
 
 def testRepeatUsername():
     UserManager.createUser("TestUser","mail@example.com","https://profilepic.example.com","0xabcdef")
     with pytest.raises(HTTPException) as HTTPError:
-        user = User(name="TestUser",email="mail@example.com",profilePicURL="https://profilepic.example.com",password="PlainTextPassword")
+        user = User(name="TestUser",email="mail@example.com",password="PlainTextPassword")
         UserController.createUser(user)
     UserManager.deleteUser("TestUser")
     assert "Username already in use" in str(HTTPError.value)
 
 def testUpdatePasswordSuccess():
-    user = User(name="TestUser",email="mail@example.com",profilePicURL="https://profilepic.example.com",password="oldPassword")
+    user = User(name="TestUser",email="mail@example.com",password="oldPassword")
     UserController.createUser(user)
     user = UserManager.readUser("TestUser")
     result = UserController.updatePassword(user, "newPassword")
@@ -77,7 +78,7 @@ def testHashChange():
 
 def testTooShortPassword():
     with pytest.raises(HTTPException) as HTTPError:
-        user = User(name="TestUser",email="mail@example.com",profilePicURL="https://profilepic.example.com",password="tiny")
+        user = User(name="TestUser",email="mail@example.com",password="tiny")
         UserController.createUser(user)
     UserManager.deleteUser("TestUser")
     assert "Password should be 8 or more characters" in str(HTTPError.value)
@@ -95,7 +96,7 @@ def testAddReviewInvalidMovie():
     assert "Movie not found" in str(HTTPError.value)
 
 def testAddReviewInvalidRating():
-    user = User(name="TestUser",email="mail@example.com",profilePicURL="https://profilepic.example.com",password="PlainTextPassword")
+    user = User(name="TestUser",email="mail@example.com",password="PlainTextPassword")
     UserController.createUser(user)
     with pytest.raises(HTTPException) as HTTPError:
         payload = ReviewCreate(reviewer ="TestUser",rating = 11, title = "hi", description = "hi")
@@ -104,7 +105,7 @@ def testAddReviewInvalidRating():
     assert "Rating needs to be an integer between 0 and 10" in str(HTTPError.value)
 
 def testEditReview():
-    user = User(name="TestUser",email="mail@example.com",profilePicURL="https://profilepic.example.com",password="PlainTextPassword")
+    user = User(name="TestUser",email="mail@example.com",password="PlainTextPassword")
     UserController.createUser(user)
     payload = ReviewCreate(reviewer ="TestUser", rating = 7, title = "hi", description = "hi")
     ReviewController.addReview("Joker",payload)
@@ -118,9 +119,9 @@ def testEditReview():
     UserManager.deleteUser("TestUser")
 
 def testSearchReviews():
-    user = User(name="TestUser",email="mail@example.com",profilePicURL="https://profilepic.example.com",password="PlainTextPassword")
+    user = User(name="TestUser",email="mail@example.com",password="PlainTextPassword")
     UserController.createUser(user)
-    user = User(name="TestUser2",email="mail@example.com",profilePicURL="https://profilepic.example.com",password="PlainTextPassword")
+    user = User(name="TestUser2",email="mail@example.com",password="PlainTextPassword")
     UserController.createUser(user)
     payload = ReviewCreate(reviewer ="TestUser",rating = 7, title = "hi", description = "hi")
     ReviewController.addReview("Joker",payload)
@@ -508,7 +509,7 @@ def testApiGetReviewNoInput():
     } in response.json()
 
 def testApiPostDeleteReview():
-    user = User(name="TestUser",email="mail@example.com",profilePicURL="https://profilepic.example.com",password="PlainTextPassword")
+    user = User(name="TestUser",email="mail@example.com",password="PlainTextPassword")
     UserController.createUser(user)
     client = TestClient(app)
     currentDate = datetime.now().date()
@@ -573,22 +574,25 @@ def testApiGetMovie():
             "duration": 148} == response.json()
 
 
-def testApiUser():
+def randomJson(tags):
+    return ["https://api.dicebear.com/9.x/shapes/svg"]
+
+def testApiUser(monkeypatch):
+    monkeypatch.setattr(ProfilePicController,"searchByTags", randomJson)
     client = TestClient(app)
     response = client.post("/Users", json = {
   "name": "Test",
   "email": "test.Email",
-  "profilePicURL": "testURL",
   "password": "PlainTextPassword"
 })
     assert response.status_code == 200
-    assert {"name": "Test","profilePicURL": "testURL"} == response.json()
+    assert {"name": "Test", "profilePicURL" : "https://api.dicebear.com/9.x/shapes/svg"} == response.json()
     response = client.get("/Users")
     assert response.status_code == 200
-    assert {"name": "Test","profilePicURL": "testURL"}in response.json()
+    assert {"name": "Test", "profilePicURL" : "https://api.dicebear.com/9.x/shapes/svg"} in response.json()
     response = client.get("/Users/Test")
     assert response.status_code == 200
-    assert {"name": "Test","profilePicURL": "testURL"} == response.json()
+    assert {"name": "Test", "profilePicURL" : "https://api.dicebear.com/9.x/shapes/svg"} == response.json()
     UserManager.deleteUser("Test")
 
 #session class testing
@@ -767,6 +771,37 @@ def testSessionManagerPreventDuplicate():
     SessionManager.createSession("abc123", "bob", t)
     duplicate = SessionManager.createSession("abc123", "bob", t)
     assert duplicate is None
+
+def testProfilePicSearchTags():
+    assert ["https://api.dicebear.com/9.x/icons/svg"] == ProfilePicController.searchByTags(["Simple","Objects"])
+
+def testProfilePic():
+    assert "https://api.dicebear.com/9.x/icons/svg" == ProfilePicController.getProfilePic(["Simple","Objects"])
+
+@pytest.fixture
+def tempProfilePicFolder(tmp_path):
+    folder = tmp_path / "tempProfilePics.json"
+    data = [
+    {
+        "profilePicURL": "testICONS",
+        "themes": ["Simple","Objects","Pastel"]
+    },
+    {
+        "profilePicURL": "testADVENTURE",
+        "themes": ["People","Colorful","Fantasy"]
+    }]
+    folder.write_text(json.dumps(data), encoding="utf-8")
+    dm = DataManager.getInstance()
+    dm.profilePicsFile = folder
+    return dm
+
+def testGetProfilePics(tempProfilePicFolder):
+    pics = [ProfilePic(profilePicURL="testICONS",themes = ["Simple","Objects","Pastel"]),
+            ProfilePic(profilePicURL="testADVENTURE", themes = ["People","Colorful","Fantasy"])] 
+    assert pics == tempProfilePicFolder.getProfilePics()
+
+def testGetAllTagsProfilePic():
+    assert {"Simple","Objects","Pastel", "People","Colorful","Fantasy"} == ProfilePicController.getAllTags()
 
 #sortMovies tests
 def testSortMoviesByRatingAsc():
@@ -957,7 +992,7 @@ def testSortReviewsInvalidOrder():
     assert "Order must be 'asc' or 'desc'" in str(excinfo.value)
 
 def testDeleteAccount():
-    user = User(name="TestUser",email="delete@gmail.com", profilePicURL="https://profilepic.example.com",password="kittens123")
+    user = User(name="TestUser",email="delete@gmail.com", password="kittens123")
     UserController.createUser(user)
 
     user = UserManager.readUser("TestUser")
@@ -1020,3 +1055,152 @@ def test_protected_route_success():
 def test_protected_route_failure():
     response = client.get("/protected-route", params={"token": "invalid_token"})
     assert response.status_code == 401
+@pytest.fixture
+def tempWarningFile(tmp_path):
+    folder = tmp_path / "tempData.json"
+    data = [{"reviewer": "TestUser",
+    "admin": "TestAdmin",
+    "reviewTitle": "TestTitle",
+    "reviewMovie": "TestMovie",
+    "warningDescription": "TestDescription"}]
+    folder.write_text(json.dumps(data), encoding="utf-8")
+
+    dm = DataManager.getInstance()
+    dm.warningFile = folder
+    return dm
+
+def testUpdateWarning(tempWarningFile):
+    warning = AdminWarning(reviewer = "TestUser", admin= "TestAdmin", reviewTitle = "NewTitle", reviewMovie = "TestMovie",
+                           warningDescription= "New Description", warningDate = date(2025,12,4))
+    WarningManager.updateWarning("TestTitle", warning)
+    assert WarningManager.readWarning("TestUser", "NewTitle", "TestMovie") == warning
+#tests for report review
+@pytest.fixture
+def tempReportFolder(tmp_path):
+    folder = tmp_path / "tempData"
+    folder.mkdir()
+    dm = DataManager.getInstance()
+    dm.dataFolder = folder
+
+    return dm
+
+def testGetReportsEmpty(tempReportFolder):
+    dm = tempReportFolder
+    reports = dm.getReports()
+    assert reports == []
+
+def testGetReports(tempReportFolder):
+    dm = tempReportFolder
+    
+    report1 = Report(
+        reportId = "testId1",
+        movie = "Joker",
+        reviewer = "User1",
+        reviewTitle = "bad bad movie",
+        reporter = "User2",
+        reason = "Inappropriate content",
+        reportDate = datetime(2022, 6, 12, 10, 0, 0)
+    )
+    dm.writeReports([report1])
+
+    reports = dm.getReports()
+    assert len(reports) == 1
+    assert reports[0].reportId == "testId1"
+    assert reports[0].movie == "Joker"
+    assert reports[0].reviewer == "User1"
+    assert reports[0].reviewTitle == "bad bad movie"
+    assert reports[0].reporter == "User2"
+    assert reports[0].reason == "Inappropriate content"
+    assert reports[0].reportDate == datetime(2022, 6, 12, 10, 0, 0)
+
+def testWriteReports(tempReportFolder):
+    dm = tempReportFolder
+    
+    report1 = Report(
+        reportId = "testId1",
+        movie = "Joker",
+        reviewer = "User1",
+        reviewTitle = "bad bad movie",
+        reporter = "User2",
+        reason = "Inappropriate content",
+        reportDate = datetime(2022, 6, 12, 10, 0, 0)
+    )
+    report2 = Report(
+        reportId = "testId2",
+        movie = "Morbius",
+        reviewer = "User3",
+        reviewTitle = "blah blah blah",
+        reporter = "User4",
+        reason = "Spam",
+        reportDate = datetime(2023, 1, 5, 15, 30, 0)
+    )
+    dm.writeReports([report1, report2])
+
+    reportFile = dm.dataFolder / "reports.json"
+    assert reportFile.exists()
+
+    with open(reportFile, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    
+    assert len(data) == 2
+    assert data[0]['reportId'] == "testId1"
+    assert data[1]['reportId'] == "testId2"
+    assert data[0]['movie'] == "Joker"
+    assert data[1]['movie'] == "Morbius"
+
+def testDeleteReports(tempReportFolder):
+    dm = tempReportFolder
+    
+    report1 = Report(
+        reportId = "testId1",
+        movie = "Joker",
+        reviewer = "User1",
+        reviewTitle = "bad bad movie",
+        reporter = "User2",
+        reason = "Inappropriate content",
+        reportDate = datetime(2022, 6, 12, 10, 0, 0)
+    )
+    report2 = Report(
+        reportId = "testId2",
+        movie = "Morbius",
+        reviewer = "User3",
+        reviewTitle = "blah blah blah",
+        reporter = "User4",
+        reason = "Spam",
+        reportDate = datetime(2023, 1, 5, 15, 30, 0)
+    )
+    dm.writeReports([report1, report2])
+
+    result = dm.deleteReports("testId1")
+    assert result is True
+
+    reports = dm.getReports()
+    assert len(reports) == 1
+    assert reports[0].reportId == "testId2"
+
+def testDeleteReportNotFound(tempReportFolder):
+    dm = tempReportFolder
+    
+    report1 = Report(
+        reportId = "testId1",
+        movie = "Joker",
+        reviewer = "User1",
+        reviewTitle = "bad bad movie",
+        reporter = "User2",
+        reason = "Inappropriate content",
+        reportDate = datetime(2022, 6, 12, 10, 0, 0)
+    )
+    dm.writeReports([report1])
+
+    result = dm.deleteReports("weebleworble")
+    assert result is False
+
+    reports = dm.getReports()
+    assert len(reports) == 1
+    assert reports[0].reportId == "testId1"
+
+def testDeleteReportEmptyList(tempReportFolder):
+    dm = tempReportFolder
+
+    result = dm.deleteReports("weebleworble")
+    assert result is False
