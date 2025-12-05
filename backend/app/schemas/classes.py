@@ -29,13 +29,12 @@ class ReviewCreate(BaseModel):
     title:str
     description:str
 
-class Warning(BaseModel):
+class AdminWarning(BaseModel):
     reviewer:str
     admin:str
     reviewTitle:str
     reviewMovie:str
     warningDescription:str
-    warningDate:datetime.date
     
 
 # def Movie:

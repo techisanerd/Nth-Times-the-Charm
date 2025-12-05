@@ -9,8 +9,8 @@ from datetime import datetime, date
 
 from managers.data_manager import DataManager
 from controllers.controllers import UserController, ReviewController, MovieController
-from managers.managers import UserManager, ReviewManager,MovieManager, SessionManager, AdminManager
-from schemas.classes import Movie, Review,Session,ReviewCreate,User, Admin
+from managers.managers import UserManager, ReviewManager,MovieManager, SessionManager, AdminManager, WarningManager
+from schemas.classes import Movie, Review,Session,ReviewCreate,User, Admin, AdminWarning
 from main import app
 
 originalMoviesFolder = " "
@@ -977,5 +977,22 @@ def testDeleteAccountNotFound():
         UserController.deleteAccount("NonExistentUser")
     assert "User not found" in str(excinfo.value)
 
-def testUpdateWarning():
-    
+@pytest.fixture
+def tempWarningFile(tmp_path):
+    folder = tmp_path / "tempData.json"
+    data = [{"reviewer": "TestUser",
+    "admin": "TestAdmin",
+    "reviewTitle": "TestTitle",
+    "reviewMovie": "TestMovie",
+    "warningDescription": "TestDescription"}]
+    folder.write_text(json.dumps(data), encoding="utf-8")
+
+    dm = DataManager.getInstance()
+    dm.warningFile = folder
+    return dm
+
+def testUpdateWarning(tempWarningFile):
+    warning = AdminWarning(reviewer = "TestUser", admin= "TestAdmin", reviewTitle = "NewTitle", reviewMovie = "TestMovie",
+                           warningDescription= "New Description", warningDate = date(2025,12,4))
+    WarningManager.updateWarning("TestTitle", warning)
+    assert WarningManager.readWarning("TestUser", "NewTitle", "TestMovie") == warning
