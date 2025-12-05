@@ -976,3 +976,6 @@ def testDeleteAccountNotFound():
     with pytest.raises(ValueError) as excinfo:
         UserController.deleteAccount("NonExistentUser")
     assert "User not found" in str(excinfo.value)
+
+def testUpdateWarning():
+    

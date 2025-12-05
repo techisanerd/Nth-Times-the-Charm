@@ -1,5 +1,5 @@
 from managers.data_manager import DataManager
-from schemas.classes import User, Movie, Review, Session, Admin
+from schemas.classes import User, Movie, Review, Session, Admin, Warning
 from datetime import datetime
 from pathlib import Path
 
@@ -202,3 +202,35 @@ class AdminManager():
 
         dataMan.writeAdmins(userList)
         return initialSize < len(userList)
+    
+class WarningManager():
+    
+    def readWarning(reviewer:str, reviewTitle:str, reviewMovie:str):
+        warningList = WarningManager.getWarnings(reviewer)
+        for i in warningList:
+            if i.reviewTitle == reviewTitle and i.reviewMovie == reviewMovie:
+                return i
+
+    def getWarnings(reviewer:str=None):
+        dataMan = DataManager.getInstance()
+        dictList = dataMan.getData(dataMan.warningFile)
+        warningList = [Warning(**warningdata) for warningdata in warningList]
+        if reviewer is not None:
+            warningList = [warning for warning in warningList if warning.reviewer == reviewer]
+        return warningList 
+    
+    def createWarning(warning:Warning):
+        warningList = WarningManager.getWarnings()
+        dataMan = DataManager.getInstance()
+        warningList.append(warning)
+        dataMan.writeData(warningList)
+
+    def deleteWarning(reviewer:str, reviewTitle:str, reviewMovie:str):
+        warningList = WarningManager.getWarnings()
+        dataMan = DataManager.getInstance()
+        warningList.remove(WarningManager.readWarning(reviewer, reviewTitle,reviewMovie))
+        dataMan.writeData(warningList)
+
+    def updateWarning(reviewTitle:str, warning:Warning):
+        WarningManager.deleteWarning(warning.reviewer, reviewTitle, warning.reviewMovie)
+        WarningManager.createWarning(warning)

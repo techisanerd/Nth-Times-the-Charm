@@ -28,6 +28,14 @@ class ReviewCreate(BaseModel):
     rating:int
     title:str
     description:str
+
+class Warning(BaseModel):
+    reviewer:str
+    admin:str
+    reviewTitle:str
+    reviewMovie:str
+    warningDescription:str
+    warningDate:datetime.date
     
 
 # def Movie:
