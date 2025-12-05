@@ -3,8 +3,8 @@ from fastapi import HTTPException
 from datetime import datetime
 from managers.data_manager import DataManager
 from managers.managers import UserManager
-from managers.managers import ReviewManager, MovieManager
-from schemas.classes import Review, User,ReviewCreate
+from managers.managers import ReviewManager, MovieManager, AdminManager
+from schemas.classes import Review, User, ReviewCreate, Admin, Movie
 from random import randrange
 
 class UserController():
@@ -12,16 +12,16 @@ class UserController():
     def createUser(payload:User):
         if(UserManager.readUser(payload.name)!=None):
             raise HTTPException(status_code = 400, detail = "400 Username already in use")
-        if(len(payload.passwordHash)<8):
+        if(len(payload.password)<8):
             raise HTTPException(status_code = 400, detail = "400 Password should be 8 or more characters")
-        if(payload.profilePic == None):
-            payload.profilePic = ProfilePicController.getProfilePic()
+        if(payload.profilePicURL == None):
+            payload.profilePicURL = ProfilePicController.getProfilePic()
         else:
             picURLs = ProfilePicController.searchByTags()
-            if(payload.profilePic not in picURLs):
+            if(payload.profilePicURL not in picURLs):
                 raise HTTPException(status_code = 400, detail = "400 URL must be from our list of accepted profile URLs")
-        hashedPassword = UserController.hashPassword(payload.passwordHash)
-        return UserManager.createUser(payload.name,payload.email,payload.profilePic,hashedPassword)
+        hashedPassword = UserController.hashPassword(payload.password)
+        return UserManager.createUser(payload.name,payload.email,payload.profilePicURL,hashedPassword)
     
     def hashPassword(passwordPlaintext:str):
         hashed = bcrypt.hashpw(passwordPlaintext.encode(), bcrypt.gensalt())
@@ -39,12 +39,24 @@ class UserController():
         if not isinstance(new_password, str) or len(new_password) < 8:
             raise ValueError("Password must be at least 8 characters long")
 
-        user.passwordHash = UserController.hashPassword(new_password)
+        user.password = UserController.hashPassword(new_password)
         return True
     
     def verifyPassword(user, password: str) -> bool:
         user = UserManager.readUser(user)
-        return bcrypt.checkpw(password.encode(), user.passwordHash.encode())
+        return bcrypt.checkpw(password.encode(), user.password.encode())
+    
+    def deleteAccount(name:str):
+        user = UserManager.readUser(name)
+        if user is None:
+            raise ValueError("User not found")
+        
+        success = UserManager.deleteUser(name)
+
+        if not success:
+            raise ValueError("Failed to delete user")
+        
+        return True
 
 class ReviewController():
 
@@ -98,6 +110,27 @@ class ReviewController():
         reviewList = [r for r in reviewList if r.title == title]
         return reviewList
 
+    def sortReviews(reviews: list[Review], sortBy: str, order: str = "asc") -> list[Review]:
+        if sortBy not in ['rating', 'reviewDate', 'title', 'usefulnessVote', 'totalVotes']:
+            raise ValueError("Invalid sortBy value")
+        if order not in ['asc', 'desc']:
+            raise ValueError("Order must be 'asc' or 'desc'")
+        
+        reverse = (order == "desc")
+
+        if sortBy == 'rating':
+            sorted_reviews = sorted(reviews, key=lambda r: r.rating, reverse=reverse)
+        elif sortBy == 'reviewDate':
+            sorted_reviews = sorted(reviews, key=lambda r: r.reviewDate, reverse=reverse)
+        elif sortBy == 'title':
+            sorted_reviews = sorted(reviews, key=lambda r: r.title.lower(), reverse=reverse)
+        elif sortBy == 'usefulnessVote':
+            sorted_reviews = sorted(reviews, key=lambda r: r.usefulnessVote, reverse=reverse)
+        elif sortBy == 'totalVotes':
+            sorted_reviews = sorted(reviews, key=lambda r: r.totalVotes, reverse=reverse)
+        
+        return sorted_reviews
+    
 class MovieController():
 
     def getMovie(title):
@@ -139,6 +172,30 @@ class MovieController():
             tags += m.actors
         tags = set(tags)
         return tags
+    
+    def sortMovies(movies: list[Movie], sortBy: str, order: str = "asc") -> list[Movie]:
+        if sortBy not in ["rating", "dateReleased", "title", "metaScore", "ratingCount", "duration"]:
+            raise ValueError("Invalid sortBy value")
+
+        if order not in ["asc", "desc"]:
+            raise ValueError("Order must be 'asc' or 'desc'")
+        
+        reverse = (order == "desc")
+
+        if sortBy == "rating":
+            sorted_movies = sorted(movies, key=lambda m: m.rating, reverse=reverse)
+        elif sortBy == "dateReleased":
+            sorted_movies = sorted(movies, key=lambda m: m.dateReleased, reverse=reverse)
+        elif sortBy == "title":
+            sorted_movies = sorted(movies, key=lambda m: m.title.lower(), reverse=reverse)
+        elif sortBy == "metaScore":
+            sorted_movies = sorted(movies, key=lambda m: m.metaScore, reverse=reverse)
+        elif sortBy == "ratingCount":
+            sorted_movies = sorted(movies, key=lambda m: m.ratingCount, reverse=reverse)
+        elif sortBy == "duration":
+            sorted_movies = sorted(movies, key=lambda m: m.duration, reverse=reverse)
+
+        return sorted_movies
      
 class ProfilePicController():
 
@@ -180,3 +237,31 @@ class ProfilePicController():
             tags += p.themes
         tags = set(tags)
         return tags
+class AdminController():
+
+    def createAdmin(payload:Admin):
+        admin = UserController.createUser(Admin)
+        if(AdminManager.readAdmin(payload.name) is not None):
+            raise HTTPException(status_code = 400, detail = "400 Admin already exist with this name")
+        AdminManager.writeUserToData(admin)
+
+    def getAdmin(username):
+        if(AdminManager.readAdmin(username)==None):
+            raise HTTPException(status_code = 404, detail = "404 Admin Not Found")
+        return AdminManager.readAdmin(username)
+    
+
+class AdminReviewController():
+
+    def takedownReview(adminName:str, movie:str, username:str, reviewTitle:str):
+        AdminController.getAdmin(adminName)
+        MovieController.getMovie(movie)
+        try:
+            UserController.getUser(username)
+            #TODO give warning to user
+        except:
+            pass
+        ReviewController.removeReview(movie, username, reviewTitle) #TODO make it so only admins can delete a review that isn't theirs
+
+    
+        

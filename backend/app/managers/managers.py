@@ -1,5 +1,5 @@
 from managers.data_manager import DataManager
-from schemas.classes import User, Movie, Review, Session
+from schemas.classes import User, Movie, Review, Session, Admin
 from datetime import datetime
 from pathlib import Path
 
@@ -25,28 +25,28 @@ class UserManager():
         dataMan.writeUsers(userList)
 
 
-    def createUser(name:str, email:str, profilePic:str, passwordHash:str) -> User | None:
+    def createUser(name:str, email:str, profilePicURL:str, password:str) -> User | None:
         #ensure no duplicates
         if UserManager.readUser(name) is not None:
             return None            
 
         
-        user = User(name=name, email=email, profilePic=profilePic, passwordHash=passwordHash)
+        user = User(name=name, email=email, profilePicURL=profilePicURL, password=password)
         UserManager.writeUserToData(user)
         return user
 
 
-    def updateUser(user, name:str=None, email:str=None, profilePic:str=None, passwordHash:str=None) -> User:
+    def updateUser(user, name:str=None, email:str=None, profilePicURL:str=None, password:str=None) -> User:
         UserManager.deleteUser(user.name)
 
         if name is not None:
             user.name = name
         if email is not None:
             user.email = email
-        if profilePic is not None:
-            user.profilePic = profilePic
-        if passwordHash is not None:
-            user.passwordHash = passwordHash 
+        if profilePicURL is not None:
+            user.profilePicURL = profilePicURL
+        if password is not None:
+            user.password = password 
 
         UserManager.writeUserToData(user)
         
@@ -60,7 +60,7 @@ class UserManager():
         userList = [user for user in userList if user.name != name]
 
         dataMan.writeUsers(userList)
-        return initialSize < len(userList)
+        return initialSize > len(userList)
     
 class ReviewManager():
     def createReview(movie, reviewDate:datetime.date, reviewer, usefulnessVote:int, totalVotes:int, rating:int, 
@@ -173,3 +173,32 @@ class SessionManager():
     
     
 
+class AdminManager():
+
+    def readAdmin(name:str):
+        dataMan = DataManager.getInstance()
+        userList = dataMan.getAdmins()
+        for u in userList:
+            if u.name == name:
+                return u 
+        return None
+    
+    def writeUserToData(admin):
+        dataMan = DataManager.getInstance()
+        userList = dataMan.getAdmins()
+        userList.append(admin)
+        dataMan.writeAdmins(userList)
+
+    def updateAdmin(name,admin:Admin):
+        if (AdminManager.readAdmin(name) is not None):
+            AdminManager.deleteAdmin(name)
+            AdminManager.writeUserToData(admin)
+
+    def deleteAdmin(name):
+        dataMan = DataManager.getInstance()
+        userList = dataMan.getAdmins()
+        initialSize = len(userList)
+        userList = [user for user in userList if user.name != name]
+
+        dataMan.writeAdmins(userList)
+        return initialSize < len(userList)

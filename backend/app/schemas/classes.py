@@ -3,13 +3,16 @@ from pydantic import BaseModel
 class User(BaseModel):
     name:str
     email:str
-    profilePic:str = None
-    passwordHash:str
+    profilePicURL:str = None
+    password:str
 
 
 class UserView(BaseModel):
     name:str
-    profilePic:str
+    profilePicURL:str
+
+class Admin(User):
+    pass
 
 class Review(BaseModel):
     reviewDate:datetime.date
