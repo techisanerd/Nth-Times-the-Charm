@@ -1038,8 +1038,7 @@ def test_login_failure():
     assert response.json()["detail"] == "Invalid credentials"
 
 def test_logout():
-    pwhash = UserController.hashPassword("correct_password")
-    login_response = client.post("/login", json={"username": "test_user", "password": pwhash})
+    login_response = client.post("/login", json={"username": "test_user", "password": password})
     token = login_response.json()["token"]
     logout_response = client.post("/logout", json={"token": token})
     assert logout_response.status_code == 200

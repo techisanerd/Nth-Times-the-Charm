@@ -1,8 +1,14 @@
 [
     {
-        "name": "TestUser",
-        "email": "mail@example.com",
+        "name": "estella",
+        "email": "estella@example.com",
         "profilePicURL": "https://profilepic.example.com",
-        "password": "$2b$12$56IRs03NxK5OXMA6ICjwBOEYCTPZvfyCdOUD6OyC09xPM7/KTIcK."
+        "password": "$2b$12$FpSyw1kmkEpEDvOwiPE79OGlgej.N5jQ1T3BO.2ExTplwXGhXRVbW"
+    },
+    {
+        "name": "Test",
+        "email": "test.Email",
+        "profilePicURL": "testURL",
+        "password": "$2b$12$F.jNitedv3NNYqY3lXWwoedtyPKNUX2d4sLcM7PJmkGJ58Sze/csW"
     }
 ]
