@@ -59,9 +59,8 @@ class ReviewController():
             raise HTTPException(status_code = 404, detail = "404 User not found")
         if(payload.rating >10 or payload.rating <0):
             raise HTTPException(status_code = 400, detail = "400 Rating needs to be an integer between 0 and 10")
-        for r in reviewList:
-            if r.reviewer == payload.reviewer:
-                raise HTTPException(status_code=409, detail="409 Review with this username and title already exists for this movie") 
+        if (len(reviewList)>0):
+            raise HTTPException(status_code=409, detail="409 Review with this username and title already exists for this movie")
         return ReviewManager.createReview(movie, datetime.now().date(), payload.reviewer,0,0,payload.rating,
                                        payload.title,payload.description)
 
@@ -127,6 +126,21 @@ class ReviewController():
         
         return sorted_reviews
     
+class ReplyController:
+    @staticmethod
+    def addReply(movie, reviewAuthor, reviewTitle, payload):
+        from controllers.controllers import ReviewController
+        reviewList = ReviewController.getReviewsByTitle(movie, reviewAuthor, reviewTitle)
+
+        if not reviewList:
+            raise HTTPException(status_code=404, detail="Review not found")
+
+        return ReplyManager.addReply(movie, reviewAuthor, reviewTitle, payload.replyAuthor, payload.replyText)
+
+    @staticmethod
+    def getReplies(movie, reviewAuthor, reviewTitle):
+        return ReplyManager.getReplies(movie, reviewAuthor, reviewTitle)
+
 class MovieController():
 
     def getMovie(title):
