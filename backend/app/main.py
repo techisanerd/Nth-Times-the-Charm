@@ -1,8 +1,8 @@
 from fastapi import FastAPI 
-from routers.fastapi import routerMovie,routerReview,routerUser,routerExport
+from routers.fastapi import routerMovie,routerReview,routerUser,routerExport,routerSession
 
 title = "Nth Times the Charm Movie Review Api"
-description  = "Allows the retrivial of  movies, reviews and users infomation, " \
+description  = "Allows the retrivial of movies, reviews and users infomation, " \
 "the creation of reviews and new users, and editing and deleting of reviews."
 
 app = FastAPI(title = title, description = description)
@@ -15,3 +15,4 @@ app.include_router(routerMovie)
 app.include_router(routerReview)
 app.include_router(routerUser)
 app.include_router(routerExport)
+app.include_router(routerSession)

@@ -207,31 +207,6 @@ class DataManager():
         self._writeSession(sessions)
         return True
     
-       
-    def deleteSession(self, token: str) -> bool:
-        sessions = self._loadSession()
-        initialCount = len(sessions)
-
-        sessions = [s for s in sessions if s.token != token]
-
-        if len(sessions) == initialCount:
-            return False
-
-        self._writeSession(sessions)
-        return True
-
-    def getSession(self, token: str):
-        sessions = self._loadSession()
-
-        for s in sessions:
-            if s.token == token:
-                return s
-
-        return None    
-    
-    def deleteReport():
-        pass
-    
 
     def getMovies(self) -> list:
         movies = []

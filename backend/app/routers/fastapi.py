@@ -1,14 +1,32 @@
-from fastapi import APIRouter, status, Query, FastAPI
+from fastapi import APIRouter, status, Query
 from typing import List, Optional
 from datetime import datetime
 from controllers.controllers import ReviewController,MovieController,UserController
-from managers.managers import MovieManager,ReviewManager, UserManager
-from schemas.classes import Movie,Review,MovieCreate,ReviewCreate,User,UserView
-from fastapi import FastAPI
+from managers.managers import MovieManager,ReviewManager, UserManager, SessionManager
+from schemas.classes import Movie,Review,MovieCreate, ReviewCreate, User, UserView, LoginRequest
 from fastapi.responses import JSONResponse
+from fastapi import HTTPException, Depends
+routerSession = APIRouter(tags=["Auth"])
 
+@routerSession.post("/login")
+def login(request: LoginRequest):
+    user_data = UserManager.getUsers()
+    if request.username not in user_data or user_data[request.username]['password'] != UserController.hashPassword(request.password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
+    session = SessionManager.create_session(request.username)
+    return {"token": session.token}
 
+@routerSession.post("/logout")
+def logout(token: str):
+    return SessionManager.delete_session(token)
+
+@routerSession.get("/protected-route")
+def protected_route(token: str):
+    session = SessionManager.getSession(token)
+    if not session or not session.is_valid():
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    return 200
 
 routerMovie = APIRouter(prefix="/Movies", tags=["Movies"])
 
