@@ -4,7 +4,7 @@ from datetime import datetime
 from managers.data_manager import DataManager
 from managers.managers import UserManager
 from managers.managers import ReviewManager, MovieManager, AdminManager, ReplyManager
-from schemas.classes import Review, User,ReviewCreate, Admin
+from schemas.classes import Review, User, ReviewCreate, Admin, Movie
 
 class UserController():
 
@@ -38,6 +38,18 @@ class UserController():
     def verifyPassword(user, password: str) -> bool:
         user = UserManager.readUser(user)
         return bcrypt.checkpw(password.encode(), user.password.encode())
+    
+    def deleteAccount(name:str):
+        user = UserManager.readUser(name)
+        if user is None:
+            raise ValueError("User not found")
+        
+        success = UserManager.deleteUser(name)
+
+        if not success:
+            raise ValueError("Failed to delete user")
+        
+        return True
 
 class ReviewController():
 
@@ -93,35 +105,28 @@ class ReviewController():
         reviewList = ReviewManager.readReview(movie,username) 
         reviewList = [r for r in reviewList if r.title == title]
         return reviewList
+
+    def sortReviews(reviews: list[Review], sortBy: str, order: str = "asc") -> list[Review]:
+        if sortBy not in ['rating', 'reviewDate', 'title', 'usefulnessVote', 'totalVotes']:
+            raise ValueError("Invalid sortBy value")
+        if order not in ['asc', 'desc']:
+            raise ValueError("Order must be 'asc' or 'desc'")
+        
+        reverse = (order == "desc")
+
+        if sortBy == 'rating':
+            sorted_reviews = sorted(reviews, key=lambda r: r.rating, reverse=reverse)
+        elif sortBy == 'reviewDate':
+            sorted_reviews = sorted(reviews, key=lambda r: r.reviewDate, reverse=reverse)
+        elif sortBy == 'title':
+            sorted_reviews = sorted(reviews, key=lambda r: r.title.lower(), reverse=reverse)
+        elif sortBy == 'usefulnessVote':
+            sorted_reviews = sorted(reviews, key=lambda r: r.usefulnessVote, reverse=reverse)
+        elif sortBy == 'totalVotes':
+            sorted_reviews = sorted(reviews, key=lambda r: r.totalVotes, reverse=reverse)
+        
+        return sorted_reviews
     
-    @staticmethod
-    def replyToReview(movie: str, reviewer: str, title: str, reply: str):
-        reviewList = ReviewController.getReviewsByTitle(movie, reviewer, title)
-
-        if not reviewList:
-            raise HTTPException(status_code=404, detail="Review not found")
-
-        review = reviewList[0]
-        if review.reply is not None:
-            raise HTTPException(status_code=409, detail="Review already has a reply")
-
-        return ReviewManager.updateReview(movie, review, reply=reply)
-
-class ReplyController:
-    @staticmethod
-    def addReply(movie, reviewAuthor, reviewTitle, payload):
-        from controllers.controllers import ReviewController
-        reviewList = ReviewController.getReviewsByTitle(movie, reviewAuthor, reviewTitle)
-
-        if not reviewList:
-            raise HTTPException(status_code=404, detail="Review not found")
-
-        return ReplyManager.addReply(movie, reviewAuthor, reviewTitle, payload.replyAuthor, payload.replyText)
-
-    @staticmethod
-    def getReplies(movie, reviewAuthor, reviewTitle):
-        return ReplyManager.getReplies(movie, reviewAuthor, reviewTitle)
-
 class MovieController():
 
     def getMovie(title):
@@ -163,6 +168,30 @@ class MovieController():
             tags += m.actors
         tags = set(tags)
         return tags
+    
+    def sortMovies(movies: list[Movie], sortBy: str, order: str = "asc") -> list[Movie]:
+        if sortBy not in ["rating", "dateReleased", "title", "metaScore", "ratingCount", "duration"]:
+            raise ValueError("Invalid sortBy value")
+
+        if order not in ["asc", "desc"]:
+            raise ValueError("Order must be 'asc' or 'desc'")
+        
+        reverse = (order == "desc")
+
+        if sortBy == "rating":
+            sorted_movies = sorted(movies, key=lambda m: m.rating, reverse=reverse)
+        elif sortBy == "dateReleased":
+            sorted_movies = sorted(movies, key=lambda m: m.dateReleased, reverse=reverse)
+        elif sortBy == "title":
+            sorted_movies = sorted(movies, key=lambda m: m.title.lower(), reverse=reverse)
+        elif sortBy == "metaScore":
+            sorted_movies = sorted(movies, key=lambda m: m.metaScore, reverse=reverse)
+        elif sortBy == "ratingCount":
+            sorted_movies = sorted(movies, key=lambda m: m.ratingCount, reverse=reverse)
+        elif sortBy == "duration":
+            sorted_movies = sorted(movies, key=lambda m: m.duration, reverse=reverse)
+
+        return sorted_movies
      
 class AdminController():
 
