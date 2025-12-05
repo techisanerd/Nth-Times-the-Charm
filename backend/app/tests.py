@@ -9,7 +9,7 @@ from datetime import datetime, date
 
 from managers.data_manager import DataManager
 from controllers.controllers import UserController, ReviewController, MovieController
-from managers.managers import UserManager, ReviewManager,MovieManager, SessionManager, AdminManager
+from managers.managers import UserManager, ReviewManager,MovieManager, SessionManager, AdminManager, ReportManager
 from schemas.classes import Movie, Review,Session,ReviewCreate,User, Admin, Report
 from main import app
 
@@ -1106,4 +1106,185 @@ def testDeleteReportEmptyList(tempReportFolder):
     dm = tempReportFolder
 
     result = dm.deleteReports("weebleworble")
+    assert result is False
+
+def testReportManagerCreate():
+    user1 = User(name="reviewer1", email="reviewer1@gmail.com", profilePicURL="http://profilepic.com/reviewer", password="password123")
+    user2 = User(name="reporter1", email="reporter1@gmail.com", profilePicURL="http://profilepic.com/reporter", password="password456")
+    UserController.createUser(user1)
+    UserController.createUser(user2)
+
+    reviewStuff = ReviewCreate(reviewer="reviewer1", rating=5, title="test review 1", description="this movie was terrible")
+    ReviewController.addReview("Joker", reviewStuff)
+
+    report = ReportManager.createReport(
+        movie="Joker",
+        reviewer="reviewer1",
+        reviewTitle="test review 1",
+        reporter="reporter1",
+        reason="Inappropriate content"
+    )
+
+    assert report is not None
+    assert report.movie == "Joker"
+    assert report.reviewer == "reviewer1"
+    assert report.reviewTitle == "test review 1"
+    assert report.reporter == "reporter1"
+    assert report.reason == "Inappropriate content"
+    assert report.reportId is not None
+
+    ReportManager.deleteReports(report.reportId)
+    ReviewController.removeReview("Joker", "reviewer1", "test review 1")
+    UserManager.deleteUser("reviewer1")
+    UserManager.deleteUser("reporter1")
+
+def testGetReportsManager():
+    user1 = User(name="reviewer2", email="reviewer2@gmail.com", profilePicURL="http://profilepic.com/reviewer", password="password123")
+    user2 = User(name="reporter2", email="reporter2@gmail.com", profilePicURL="http://profilepic.com/reporter", password="password456")
+    UserController.createUser(user1)
+    UserController.createUser(user2)
+
+    reviewStuff = ReviewCreate(reviewer="reviewer2", rating=5, title="test review 2", description="this movie was terrible")
+    ReviewController.addReview("Morbius", reviewStuff)
+
+    report1 = ReportManager.createReport("Morbius", "reviewer2", "test review 2", "reporter2", "Inappropriate content")
+    report2 = ReportManager.createReport("Morbius", "reviewer2", "test review 2", "reporter2", "Spam")
+
+    allReports = ReportManager.getReports()
+    assert len(allReports) >= 2
+    reportIds = [report.reportId for report in allReports]
+    assert report1.reportId in reportIds
+    assert report2.reportId in reportIds
+
+    ReportManager.deleteReports(report1.reportId)
+    ReportManager.deleteReports(report2.reportId)
+    ReviewController.removeReview("Morbius", "reviewer2", "test review 2")
+    UserManager.deleteUser("reviewer2")
+    UserManager.deleteUser("reporter2")
+
+def testCreateReportMovieNotFound():
+    with pytest.raises(ValueError) as excinfo:
+        ReportManager.createReport(
+            movie="NonExistentMovie",
+            reviewer="someuser",
+            reviewTitle="title",
+            reporter="reporter",
+            reason="spam"
+        )
+    assert "Movie not found" in str(excinfo.value)
+
+def testCreateReportReviewerNotFound():
+    with pytest.raises(ValueError) as excinfo:
+        ReportManager.createReport(
+            movie="Joker",
+            reviewer="NonExistentUser",
+            reviewTitle="title",
+            reporter="reporter",
+            reason="spam"
+        )
+    assert "Reviewer not found" in str(excinfo.value)
+
+def testCreateReportReporterNotFound():
+    user1 = User(name="reviewer3", email="reviewer3@gmail.com", profilePicURL="http://profilepic.com/reviewer", password="password123")
+    UserController.createUser(user1)
+    
+    with pytest.raises(ValueError) as excinfo:
+        ReportManager.createReport(
+            movie="Joker",
+            reviewer="reviewer3",
+            reviewTitle="title",
+            reporter="NonExistentReporter",
+            reason="spam"
+        )
+    assert "Reporter not found" in str(excinfo.value)
+    
+    UserManager.deleteUser("reviewer3")
+
+def testCreateReportReviewNotFound():
+    user1 = User(name="reviewer4", email="reviewer4@gmail.com", profilePicURL="http://profilepic.com/reviewer", password="password123")
+    user2 = User(name="reporter4", email="reporter4@gmail.com", profilePicURL="http://profilepic.com/reporter", password="password456")
+    UserController.createUser(user1)
+    UserController.createUser(user2)
+
+    with pytest.raises(ValueError) as excinfo:
+        ReportManager.createReport(
+            movie="Joker",
+            reviewer="reviewer4",
+            reviewTitle="NonExistentReviewTitle",
+            reporter="reporter4",
+            reason="spam"
+        )
+    assert "Review not found" in str(excinfo.value)
+
+    UserManager.deleteUser("reviewer4")
+    UserManager.deleteUser("reporter4")
+
+def testCreateReportSelf():
+    user1 = User(name="reviewer5", email="reviewer5@gmail.com", profilePicURL="http://profilepic.com/reviewer", password="password123")
+    UserController.createUser(user1)
+
+    reviewStuff = ReviewCreate(reviewer="reviewer5", rating=5, title="test review 5", description="this movie was terrible")
+    ReviewController.addReview("Joker", reviewStuff)
+
+    with pytest.raises(ValueError) as excinfo:
+        ReportManager.createReport(
+            movie="Joker",
+            reviewer="reviewer5",
+            reviewTitle="test review 5",
+            reporter="reviewer5",
+            reason="spam"
+        )
+    assert "You can't report your own review" in str(excinfo.value)
+
+    ReviewController.removeReview("Joker", "reviewer5", "test review 5")
+    UserManager.deleteUser("reviewer5")
+
+def testCreateReportEmptyReason():
+    user1 = User(name="reviewer6", email="reviewer6@gmail.com", profilePicURL="http://profilepic.com/reviewer", password="password123")
+    user2 = User(name="reporter6", email="reporter6@gmail.com", profilePicURL="http://profilepic.com/reporter", password="password456")
+    UserController.createUser(user1)
+    UserController.createUser(user2)
+
+    reviewStuff = ReviewCreate(reviewer="reviewer6", rating=5, title="test review 6", description="this movie was terrible")
+    ReviewController.addReview("Joker", reviewStuff)
+
+    with pytest.raises(ValueError) as excinfo:
+        ReportManager.createReport(
+            movie="Joker",
+            reviewer="reviewer6",
+            reviewTitle="test review 6",
+            reporter="reporter6",
+            reason=""
+        )
+    assert "Reason can't be empty" in str(excinfo.value)
+    
+    ReviewController.removeReview("Joker", "reviewer6", "test review 6")
+    UserManager.deleteUser("reviewer6")
+    UserManager.deleteUser("reporter6")
+
+def testDeleteReportManager():
+    user1 = User(name="reviewer7", email="reviewer7@gmail.com", profilePicURL="http://profilepic.com/reviewer", password="password123")
+    user2 = User(name="reporter7", email="reporter7@gmail.com", profilePicURL="http://profilepic.com/reporter", password="password456")
+    UserController.createUser(user1)
+    UserController.createUser(user2)
+
+    reviewStuff = ReviewCreate(reviewer="reviewer7", rating=5, title="test review 7", description="this movie was terrible")
+    ReviewController.addReview("Joker", reviewStuff)
+
+    report = ReportManager.createReport("Joker", "reviewer7", "test review 7", "reporter7", "Inappropriate content")
+    reportId = report.reportId
+
+    result = ReportManager.deleteReports(reportId)
+    assert result is True
+
+    allReports = ReportManager.getReports()
+    reportIds = [r.reportId for r in allReports]
+    assert reportId not in reportIds
+
+    ReviewController.removeReview("Joker", "reviewer7", "test review 7")
+    UserManager.deleteUser("reviewer7")
+    UserManager.deleteUser("reporter7")
+
+def testDeleteReportManagerNotFound():
+    result = ReportManager.deleteReports("wahhhhoooooble")
     assert result is False

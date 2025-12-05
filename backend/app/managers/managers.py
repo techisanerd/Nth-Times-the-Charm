@@ -1,7 +1,8 @@
 from managers.data_manager import DataManager
-from schemas.classes import User, Movie, Review, Session, Admin
+from schemas.classes import User, Movie, Review, Session, Admin, Report
 from datetime import datetime
 from pathlib import Path
+import uuid
 
 class UserManager():
     def readUser(name:str) -> User|None:
@@ -202,3 +203,60 @@ class AdminManager():
 
         dataMan.writeAdmins(userList)
         return initialSize < len(userList)
+    
+class ReportManager():
+
+    def createReport(movie:str, reviewer:str, reviewTitle:str, reporter:str, reason:str):
+        if MovieManager.readMovie(movie) is None:
+            raise ValueError("Movie not found")
+        if UserManager.readUser(reviewer) is None:
+            raise ValueError("Reviewer not found")
+        if UserManager.readUser(reporter) is None:
+            raise ValueError("Reporter not found")
+        
+        reviews = ReviewManager.readReview(movie, reviewer)
+        reviewExists = any(r.title == reviewTitle for r in reviews)
+        if not reviewExists:
+            raise ValueError("Review not found")
+        if reviewer == reporter:
+            raise ValueError("You can't report your own review")
+        if not reason or len(reason.strip()) == 0:
+            raise ValueError("Reason can't be empty")
+        
+        reportId = str(uuid.uuid4())
+
+        report = Report(
+            reportId=reportId,
+            movie=movie,
+            reviewer=reviewer,
+            reviewTitle=reviewTitle,
+            reporter=reporter,
+            reason=reason,
+            reportDate=datetime.now()
+        )
+
+        dataMan = DataManager.getInstance()
+        reports = dataMan.getReports()
+        reports.append(report)
+        dataMan.writeReports(reports)
+
+        return report
+    
+    def getReports() -> list:
+        dataMan = DataManager.getInstance()
+        return dataMan.getReports()
+    
+    def getReportsByReview(movie:str, reviewer:str, reviewTitle:str) -> list:
+        dataMan = DataManager.getInstance()
+        allReports = dataMan.getReports()
+
+        filteredReports = [
+            r for r in allReports
+            if r.movie == movie and r.reviewer == reviewer and r.reviewTitle == reviewTitle
+        ]
+
+        return filteredReports
+    
+    def deleteReports(reportId: str) -> bool:
+        dataMan = DataManager.getInstance()
+        return dataMan.deleteReports(reportId)
