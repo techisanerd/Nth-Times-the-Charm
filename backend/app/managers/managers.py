@@ -2,6 +2,7 @@ from managers.data_manager import DataManager
 from schemas.classes import User, Movie, Review, Session, Admin, AdminWarning, Reply, Report
 from datetime import datetime
 from pathlib import Path
+from fastapi import HTTPException
 import uuid
 
 class UserManager():
@@ -240,20 +241,20 @@ class ReportManager():
 
     def createReport(movie:str, reviewer:str, reviewTitle:str, reporter:str, reason:str):
         if MovieManager.readMovie(movie) is None:
-            raise ValueError("Movie not found")
+            raise HTTPException(status_code=404, detail="404 Movie not found")
         if UserManager.readUser(reviewer) is None:
-            raise ValueError("Reviewer not found")
+            raise HTTPException(status_code=404, detail="404 Reviewer not found")
         if UserManager.readUser(reporter) is None:
-            raise ValueError("Reporter not found")
+            raise HTTPException(status_code=404, detail="404 Reporter not found")
         
         reviews = ReviewManager.readReview(movie, reviewer)
         reviewExists = any(r.title == reviewTitle for r in reviews)
         if not reviewExists:
-            raise ValueError("Review not found")
+            raise HTTPException(status_code=404, detail="404 Review not found")
         if reviewer == reporter:
-            raise ValueError("You can't report your own review")
+            raise HTTPException(status_code=400, detail="400 You can't report your own review")
         if not reason or len(reason.strip()) == 0:
-            raise ValueError("Reason can't be empty")
+            raise HTTPException(status_code=400, detail="400 Reason can't be empty")
         
         reportId = str(uuid.uuid4())
 

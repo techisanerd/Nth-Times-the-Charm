@@ -1162,8 +1162,8 @@ def testDeleteReportEmptyList(tempReportFolder):
     assert result is False
 
 def testReportManagerCreate():
-    user1 = User(name="reviewer1", email="reviewer1@gmail.com", profilePicURL="http://profilepic.com/reviewer", password="password123")
-    user2 = User(name="reporter1", email="reporter1@gmail.com", profilePicURL="http://profilepic.com/reporter", password="password456")
+    user1 = User(name="reviewer1", email="reviewer1@gmail.com", password="password123")
+    user2 = User(name="reporter1", email="reporter1@gmail.com", password="password456")
     UserController.createUser(user1)
     UserController.createUser(user2)
 
@@ -1192,16 +1192,16 @@ def testReportManagerCreate():
     UserManager.deleteUser("reporter1")
 
 def testGetReportsManager():
-    user1 = User(name="reviewer2", email="reviewer2@gmail.com", profilePicURL="http://profilepic.com/reviewer", password="password123")
-    user2 = User(name="reporter2", email="reporter2@gmail.com", profilePicURL="http://profilepic.com/reporter", password="password456")
+    user1 = User(name="reviewer2", email="reviewer2@gmail.com", password="password123")
+    user2 = User(name="reporter2", email="reporter2@gmail.com", password="password456")
     UserController.createUser(user1)
     UserController.createUser(user2)
 
     reviewStuff = ReviewCreate(reviewer="reviewer2", rating=5, title="test review 2", description="this movie was terrible")
-    ReviewController.addReview("Morbius", reviewStuff)
+    ReviewController.addReview("Joker", reviewStuff)
 
-    report1 = ReportManager.createReport("Morbius", "reviewer2", "test review 2", "reporter2", "Inappropriate content")
-    report2 = ReportManager.createReport("Morbius", "reviewer2", "test review 2", "reporter2", "Spam")
+    report1 = ReportManager.createReport("Joker", "reviewer2", "test review 2", "reporter2", "Inappropriate content")
+    report2 = ReportManager.createReport("Joker", "reviewer2", "test review 2", "reporter2", "Spam")
 
     allReports = ReportManager.getReports()
     assert len(allReports) >= 2
@@ -1211,12 +1211,12 @@ def testGetReportsManager():
 
     ReportManager.deleteReports(report1.reportId)
     ReportManager.deleteReports(report2.reportId)
-    ReviewController.removeReview("Morbius", "reviewer2", "test review 2")
+    ReviewController.removeReview("Joker", "reviewer2", "test review 2")
     UserManager.deleteUser("reviewer2")
     UserManager.deleteUser("reporter2")
 
 def testCreateReportMovieNotFound():
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(HTTPException) as HTTPError:
         ReportManager.createReport(
             movie="NonExistentMovie",
             reviewer="someuser",
@@ -1224,10 +1224,10 @@ def testCreateReportMovieNotFound():
             reporter="reporter",
             reason="spam"
         )
-    assert "Movie not found" in str(excinfo.value)
+    assert "Movie not found" in str(HTTPError.value)
 
 def testCreateReportReviewerNotFound():
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(HTTPException) as HTTPError:
         ReportManager.createReport(
             movie="Joker",
             reviewer="NonExistentUser",
@@ -1235,13 +1235,13 @@ def testCreateReportReviewerNotFound():
             reporter="reporter",
             reason="spam"
         )
-    assert "Reviewer not found" in str(excinfo.value)
+    assert "Reviewer not found" in str(HTTPError.value)
 
 def testCreateReportReporterNotFound():
-    user1 = User(name="reviewer3", email="reviewer3@gmail.com", profilePicURL="http://profilepic.com/reviewer", password="password123")
+    user1 = User(name="reviewer3", email="reviewer3@gmail.com", password="password123")
     UserController.createUser(user1)
     
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(HTTPException) as HTTPError:
         ReportManager.createReport(
             movie="Joker",
             reviewer="reviewer3",
@@ -1249,17 +1249,17 @@ def testCreateReportReporterNotFound():
             reporter="NonExistentReporter",
             reason="spam"
         )
-    assert "Reporter not found" in str(excinfo.value)
+    assert "Reporter not found" in str(HTTPError.value)
     
     UserManager.deleteUser("reviewer3")
 
 def testCreateReportReviewNotFound():
-    user1 = User(name="reviewer4", email="reviewer4@gmail.com", profilePicURL="http://profilepic.com/reviewer", password="password123")
-    user2 = User(name="reporter4", email="reporter4@gmail.com", profilePicURL="http://profilepic.com/reporter", password="password456")
+    user1 = User(name="reviewer4", email="reviewer4@gmail.com", password="password123")
+    user2 = User(name="reporter4", email="reporter4@gmail.com", password="password456")
     UserController.createUser(user1)
     UserController.createUser(user2)
 
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(HTTPException) as HTTPError:
         ReportManager.createReport(
             movie="Joker",
             reviewer="reviewer4",
@@ -1267,19 +1267,19 @@ def testCreateReportReviewNotFound():
             reporter="reporter4",
             reason="spam"
         )
-    assert "Review not found" in str(excinfo.value)
+    assert "Review not found" in str(HTTPError.value)
 
     UserManager.deleteUser("reviewer4")
     UserManager.deleteUser("reporter4")
 
 def testCreateReportSelf():
-    user1 = User(name="reviewer5", email="reviewer5@gmail.com", profilePicURL="http://profilepic.com/reviewer", password="password123")
+    user1 = User(name="reviewer5", email="reviewer5@gmail.com", password="password123")
     UserController.createUser(user1)
 
     reviewStuff = ReviewCreate(reviewer="reviewer5", rating=5, title="test review 5", description="this movie was terrible")
     ReviewController.addReview("Joker", reviewStuff)
 
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(HTTPException) as HTTPError:
         ReportManager.createReport(
             movie="Joker",
             reviewer="reviewer5",
@@ -1287,21 +1287,21 @@ def testCreateReportSelf():
             reporter="reviewer5",
             reason="spam"
         )
-    assert "You can't report your own review" in str(excinfo.value)
+    assert "You can't report your own review" in str(HTTPError.value)
 
     ReviewController.removeReview("Joker", "reviewer5", "test review 5")
     UserManager.deleteUser("reviewer5")
 
 def testCreateReportEmptyReason():
-    user1 = User(name="reviewer6", email="reviewer6@gmail.com", profilePicURL="http://profilepic.com/reviewer", password="password123")
-    user2 = User(name="reporter6", email="reporter6@gmail.com", profilePicURL="http://profilepic.com/reporter", password="password456")
+    user1 = User(name="reviewer6", email="reviewer6@gmail.com", password="password123")
+    user2 = User(name="reporter6", email="reporter6@gmail.com", password="password456")
     UserController.createUser(user1)
     UserController.createUser(user2)
 
     reviewStuff = ReviewCreate(reviewer="reviewer6", rating=5, title="test review 6", description="this movie was terrible")
     ReviewController.addReview("Joker", reviewStuff)
 
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(HTTPException) as HTTPError:
         ReportManager.createReport(
             movie="Joker",
             reviewer="reviewer6",
@@ -1309,15 +1309,15 @@ def testCreateReportEmptyReason():
             reporter="reporter6",
             reason=""
         )
-    assert "Reason can't be empty" in str(excinfo.value)
+    assert "Reason can't be empty" in str(HTTPError.value)
     
     ReviewController.removeReview("Joker", "reviewer6", "test review 6")
     UserManager.deleteUser("reviewer6")
     UserManager.deleteUser("reporter6")
 
 def testDeleteReportManager():
-    user1 = User(name="reviewer7", email="reviewer7@gmail.com", profilePicURL="http://profilepic.com/reviewer", password="password123")
-    user2 = User(name="reporter7", email="reporter7@gmail.com", profilePicURL="http://profilepic.com/reporter", password="password456")
+    user1 = User(name="reviewer7", email="reviewer7@gmail.com", password="password123")
+    user2 = User(name="reporter7", email="reporter7@gmail.com", password="password456")
     UserController.createUser(user1)
     UserController.createUser(user2)
 
@@ -1340,4 +1340,4 @@ def testDeleteReportManager():
 
 def testDeleteReportManagerNotFound():
     result = ReportManager.deleteReports("wahhhhoooooble")
-    assert result is False
+    assert result is False 
