@@ -1,1 +1,9 @@
-[]
+[
+    {
+        "reviewer": "TestUser1",
+        "admin": "TestAdmin1",
+        "reviewTitle": "Title",
+        "reviewMovie": "Test Movie",
+        "warningDescription": "TestWarning"
+    }
+]
