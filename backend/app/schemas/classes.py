@@ -1,5 +1,6 @@
 import datetime, uuid
 from pydantic import BaseModel
+import hashlib
 
 class User(BaseModel):
     name:str
@@ -94,7 +95,13 @@ class MovieCreate(BaseModel):
     actors:list
     description:str
     duration:int
-    
+
+    # represents a user login
+class LoginRequest(BaseModel):
+    name: str
+    password: str
+
+
 # session class
 # represents a logged in user session
 class Session:
@@ -120,6 +127,17 @@ class Session:
             username=data['username'],
             created=datetime.datetime.fromisoformat(data['created'])
         )
+
+    # Check if the session token is valid
+    def is_valid(self, expiration_minutes: int = 30) -> bool:
+        now = datetime.datetime.now()
+        return (now - self.created).total_seconds() < expiration_minutes * 60
+
+    # Generate a new session token
+    @staticmethod
+    def generate_token(username: str) -> str:
+        return hashlib.sha256(f"{username}{datetime.datetime.now()}".encode()).hexdigest()
+
 
 class Report(BaseModel):
     reportId: str

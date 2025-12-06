@@ -31,7 +31,7 @@ class UserManager():
         #ensure no duplicates
         if UserManager.readUser(name) is not None:
             return None            
-
+        # test
         
         user = User(name=name, email=email, profilePicURL=profilePicURL, password=password)
         UserManager.writeUserToData(user)
@@ -128,7 +128,6 @@ class ReviewManager():
         dataMan = DataManager.getInstance()
         return dataMan.readReviews(movie)
 
-
 class ReplyManager:
     @staticmethod
     def addReply(movie, reviewAuthor, reviewTitle, replyAuthor, replyText):
@@ -205,6 +204,41 @@ class SessionManager():
         success = dm.createSession(session)
         return session if success else None
     
+    def getSession(token: str):
+        dm = DataManager.getInstance()
+        sessions = dm._loadSession()
+
+        for s in sessions:
+            if s.token == token:
+                return s
+
+        return None    
+
+    def create_session(username: str) -> Session:
+        dm = DataManager.getInstance()
+        sessionList = dm._loadSession()
+        token = Session.generate_token(username)
+        session = Session(token=token, username=username, created=datetime.now())
+        sessionList.append(session)
+        dm._writeSession(sessionList)
+        return session
+
+
+    
+    def deleteSession(token: str) -> bool:
+        dm = DataManager.getInstance()
+        sessions = dm._loadSession()
+        initialCount = len(sessions)
+
+        sessions = [s for s in sessions if s.token != token]
+
+        if len(sessions) == initialCount:
+            return False
+
+        dm._writeSession(sessions)
+        return True
+
+
     
 
 class AdminManager():
