@@ -3,8 +3,8 @@ from fastapi import HTTPException
 from datetime import datetime
 from managers.data_manager import DataManager
 from managers.managers import UserManager
-from managers.managers import ReviewManager, MovieManager, AdminManager, ReplyManager
-from schemas.classes import Review, User, ReviewCreate, Admin, Movie
+from managers.managers import ReviewManager, MovieManager, AdminManager, ReplyManager, WarningManager
+from schemas.classes import Review, User, ReviewCreate, Admin, Movie, AdminWarning
 from random import randrange
 
 class UserController():
@@ -275,12 +275,13 @@ class AdminController():
 
 class AdminReviewController():
 
-    def takedownReview(adminName:str, movie:str, username:str, reviewTitle:str):
+    def takedownReview(adminName:str, movie:str, username:str, reviewTitle:str, warningDescription):
         AdminController.getAdmin(adminName)
         MovieController.getMovie(movie)
         try:
             UserController.getUser(username)
-            #TODO give warning to user
+            warning = AdminWarning(reviewer= username, admin=adminName, reviewMovie= movie,reviewTitle= reviewTitle,warningDescription= warningDescription)
+            WarningManager.createWarning(warning)
         except:
             pass
         ReviewController.removeReview(movie, username, reviewTitle) #TODO make it so only admins can delete a review that isn't theirs
