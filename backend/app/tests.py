@@ -1162,68 +1162,7 @@ def testDeleteReportEmptyList(tempReportFolder):
     assert result is False
 
 
-@pytest.fixture
-def tempUserFolder(tmp_path):
-    folder = tmp_path / "tempusers.json"
-    data = [{"name":"TestUser",
-    "email": "Test@Email",
-    "profilePicURL": "https://api.dicebear.com/9.x/shapes/svg",
-    "password":"0xABCDEF"}]
-    folder.write_text(json.dumps(data), encoding="utf-8")
-    dm = DataManager.getInstance()
-    dm.userFile = folder
-    return dm
 
-@pytest.fixture
-def tempAdminFolder(tmp_path):
-    folder = tmp_path / "tempadmins.json"
-    data = [{"name":"TestAdmin",
-    "email": "Test@Email",
-    "profilePicURL": "https://api.dicebear.com/9.x/shapes/svg",
-    "password":"0xABCDEF"}]
-    folder.write_text(json.dumps(data), encoding="utf-8")
-    dm = DataManager.getInstance()
-    dm.adminFile = folder
-    return dm
-
-@pytest.fixture
-def tempMoviesFileWithMovie(tempMoviesFolder):
-    folder = tempMoviesFolder.moviesFolder / "Test Movie" 
-    folder.mkdir()
-    tempMoviesFile = folder / "metadata.json"
-    data = {"title": "Test Movie",
-        "movieIMDbRating":7.5,
-        "totalRatingCount":1500,
-        "totalUserReviews":"300",
-        "totalCriticReviews":50,
-        "metaScore":65,
-        "movieGenres":["Drama", "Thriller"],
-        "directors":["Jane Doe"],
-        "datePublished": "2017-11-03",
-        "creators": ["John Smith"],
-        "mainStars":["Actor A", "Actor B"],
-        "description":"A test movie for unit testing.",
-        "duration":125}
-    tempMoviesFile.write_text(json.dumps(data),encoding="utf-8")
-    dm = DataManager.getInstance()
-    dm.moviesFolder = tempMoviesFolder.moviesFolder
-    return folder
-
-@pytest.fixture
-def tempReviewFolder(tempMoviesFileWithMovie):
-    folder = tempMoviesFileWithMovie /"testReviews.csv"
-    folder.write_text("4 December 2025,TestUser,0,1,6,Title,\"Test Description\"", encoding="utf-8")
-    dm = DataManager.getInstance()
-    dm.reviewFile = folder
-    return dm
-
-
-def testTakedownReview(tempAdminFolder, tempUserFolder, tempMoviesFileWithMovie,tempReviewFolder):
-    assert len(ReviewController.getReviewsByTitle("Test Movie", "TestUser", "Title")) == 1
-    AdminReviewController.takedownReview("TestAdmin", "Test Movie", "TestUser", "Title", "TestWarning")
-    assert len(ReviewController.getReviewsByTitle("Test Movie", "TestUser", "Title")) == 0
-    warning = AdminWarning(reviewer="TestUser",admin="TestAdmin", reviewTitle= "Title",reviewMovie="Test Movie", warningDescription= "TestWarning")
-    assert WarningManager.readWarning("TestUser", "Title", "Test Movie") == warning
 
 def testReportManagerCreate():
     user1 = User(name="reviewer1", email="reviewer1@gmail.com", password="password123")
@@ -1405,3 +1344,66 @@ def testDeleteReportManager():
 def testDeleteReportManagerNotFound():
     result = ReportManager.deleteReports("wahhhhoooooble")
     assert result is False 
+
+@pytest.fixture
+def tempUserFolder(tmp_path):
+    folder = tmp_path / "tempusers.json"
+    data = [{"name":"TestUser",
+    "email": "Test@Email",
+    "profilePicURL": "https://api.dicebear.com/9.x/shapes/svg",
+    "password":"0xABCDEF"}]
+    folder.write_text(json.dumps(data), encoding="utf-8")
+    dm = DataManager.getInstance()
+    dm.userFile = folder
+    return dm
+
+@pytest.fixture
+def tempAdminFolder(tmp_path):
+    folder = tmp_path / "tempadmins.json"
+    data = [{"name":"TestAdmin",
+    "email": "Test@Email",
+    "profilePicURL": "https://api.dicebear.com/9.x/shapes/svg",
+    "password":"0xABCDEF"}]
+    folder.write_text(json.dumps(data), encoding="utf-8")
+    dm = DataManager.getInstance()
+    dm.adminFile = folder
+    return dm
+
+@pytest.fixture
+def tempMoviesFileWithMovie(tempMoviesFolder):
+    folder = tempMoviesFolder.moviesFolder / "Test Movie" 
+    folder.mkdir()
+    tempMoviesFile = folder / "metadata.json"
+    data = {"title": "Test Movie",
+        "movieIMDbRating":7.5,
+        "totalRatingCount":1500,
+        "totalUserReviews":"300",
+        "totalCriticReviews":50,
+        "metaScore":65,
+        "movieGenres":["Drama", "Thriller"],
+        "directors":["Jane Doe"],
+        "datePublished": "2017-11-03",
+        "creators": ["John Smith"],
+        "mainStars":["Actor A", "Actor B"],
+        "description":"A test movie for unit testing.",
+        "duration":125}
+    tempMoviesFile.write_text(json.dumps(data),encoding="utf-8")
+    dm = DataManager.getInstance()
+    dm.moviesFolder = tempMoviesFolder.moviesFolder
+    return folder
+
+@pytest.fixture
+def tempReviewFolder(tempMoviesFileWithMovie):
+    folder = tempMoviesFileWithMovie /"testReviews.csv"
+    folder.write_text("4 December 2025,TestUser,0,1,6,Title,\"Test Description\"", encoding="utf-8")
+    dm = DataManager.getInstance()
+    dm.reviewFile = folder
+    return dm
+
+
+def testTakedownReview(tempAdminFolder, tempUserFolder, tempMoviesFileWithMovie,tempReviewFolder):
+    assert len(ReviewController.getReviewsByTitle("Test Movie", "TestUser", "Title")) == 1
+    AdminReviewController.takedownReview("TestAdmin", "Test Movie", "TestUser", "Title", "TestWarning")
+    assert len(ReviewController.getReviewsByTitle("Test Movie", "TestUser", "Title")) == 0
+    warning = AdminWarning(reviewer="TestUser",admin="TestAdmin", reviewTitle= "Title",reviewMovie="Test Movie", warningDescription= "TestWarning")
+    assert WarningManager.readWarning("TestUser", "Title", "Test Movie") == warning
