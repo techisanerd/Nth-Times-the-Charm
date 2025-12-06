@@ -1,1 +1,8 @@
-[]
+[
+    {
+        "name": "AdminForTesting",
+        "email": "Testing@email.ca",
+        "profilePicURL": "https://api.dicebear.com/9.x/bottts/svg",
+        "password": "$2b$12$cByJiNNjt6Fosbh.SXcrbeBDUccoMlVNGAz4YH20pYG/g0jbFr.iq"
+    }
+]

@@ -1,1 +1,9 @@
-[]
+[{
+    "reportId": "A",
+    "movie": "Test Movie",
+    "reviewer": "TestUser",
+    "reviewTitle": "Title",
+    "reporter": "TestReporter",
+    "reason": "I need an example to do testing",
+    "reportDate": "2025-12-04"
+}]
