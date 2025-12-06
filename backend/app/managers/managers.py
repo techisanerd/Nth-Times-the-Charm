@@ -1,5 +1,5 @@
 from managers.data_manager import DataManager
-from schemas.classes import User, Movie, Review, Session, Admin, AdminWarning, Reply, Report
+from schemas.classes import User, Movie, Review, Session, Admin, AdminWarning, Reply, Report, Favorite
 from datetime import datetime
 from pathlib import Path
 from fastapi import HTTPException
@@ -360,3 +360,76 @@ class WarningManager():
     def updateWarning(reviewTitle:str, warning:AdminWarning):
         WarningManager.deleteWarning(warning.reviewer, reviewTitle, warning.reviewMovie)
         WarningManager.createWarning(warning)
+
+class FavoriteManager():
+
+    def addFavorite(username: str, movie: str, reviewer: str, reviewTitle: str):
+        if UserManager.readUser(username) is None:
+            raise HTTPException(status_code=404, detail="404 User not found")
+        if MovieManager.readMovie(movie) is None:
+            raise HTTPException(status_code=404, detail="404 Movie not found")
+        reviews = ReviewManager.readReview(movie, reviewer)
+        reviewExists = any(r.title == reviewTitle for r in reviews)
+        if not reviewExists:
+            raise HTTPException(status_code=404, detail="404 Review not found")
+        
+        dataMan = DataManager.getInstance()
+        favorites = dataMan.getFavorites()
+        for fav in favorites:
+            if (fav.username == username and fav.movie == movie and fav.reviewer == reviewer and fav.reviewTitle == reviewTitle):
+                return FavoriteManager._getUserFavorites(username, favorites)
+        
+        favorite = Favorite(
+            username=username,
+            movie=movie,
+            reviewer=reviewer,
+            reviewTitle=reviewTitle
+        )
+        favorites.append(favorite)
+        dataMan.writeFavorites(favorites)
+        
+        return FavoriteManager._getUserFavorites(username, favorites)
+    
+    def removeFavorite(username: str, movie: str, reviewer: str, reviewTitle: str):
+        if UserManager.readUser(username) is None:
+            raise HTTPException(status_code=404, detail="404 User not found")
+        
+        dataMan = DataManager.getInstance()
+        success = dataMan.deleteFavorite(username, movie, reviewer, reviewTitle)
+        favorites = dataMan.getFavorites()
+
+        return FavoriteManager._getUserFavorites(username, favorites) if success else None
+    
+    def getFavorites(username: str) -> list:
+      if UserManager.readUser(username) is None:
+            raise HTTPException(status_code=404, detail="404 User not found")
+      
+      dataMan = DataManager.getInstance()
+      favorites = dataMan.getFavorites()
+
+      return FavoriteManager._getUserFavorites(username, favorites)
+    
+    def isFavorited(username: str, movie: str, reviewer: str, reviewTitle: str) -> bool:
+        user = UserManager.readUser(username)
+        if user is None:
+            return False
+        
+        dataMan = DataManager.getInstance()
+        favorites = dataMan.getFavorites()
+        for fav in favorites:
+            if (fav.username == username and fav.movie == movie and fav.reviewer == reviewer and fav.reviewTitle == reviewTitle):
+                return True
+        return False
+    
+    def _getUserFavorites(username: str, favorites: list) -> list:
+        userFavorites = [
+            {
+            "movie": fav.movie,
+            "reviewer": fav.reviewer,
+            "reviewTitle": fav.reviewTitle
+            }
+            for fav in favorites if fav.username == username
+        ]
+        return userFavorites
+        
+
