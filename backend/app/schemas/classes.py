@@ -138,5 +138,10 @@ class ProfilePic(BaseModel):
     profilePicURL:str
     themes:list[str]
 
-   
+
+class Favorite(BaseModel):
+    username:str
+    movie:str
+    reviewer:str
+    reviewTitle:str
    

@@ -9,8 +9,8 @@ import random
 from datetime import datetime, date
 from managers.data_manager import DataManager
 from controllers.controllers import UserController, ReviewController, MovieController, ProfilePicController, AdminReviewController
-from managers.managers import UserManager, ReviewManager,MovieManager, SessionManager, AdminManager, WarningManager, ReportManager
-from schemas.classes import Movie, Review,Session,ReviewCreate,User, Admin, Report, ProfilePic, AdminWarning
+from managers.managers import UserManager, ReviewManager,MovieManager, SessionManager, AdminManager, WarningManager, ReportManager, FavoriteManager
+from schemas.classes import Movie, Review,Session,ReviewCreate,User, Admin, Report, ProfilePic, AdminWarning, Favorite
 from main import app
 
 originalMoviesFolder = " "
@@ -1407,3 +1407,98 @@ def testTakedownReview(tempAdminFolder, tempUserFolder, tempMoviesFileWithMovie,
     assert len(ReviewController.getReviewsByTitle("Test Movie", "TestUser", "Title")) == 0
     warning = AdminWarning(reviewer="TestUser",admin="TestAdmin", reviewTitle= "Title",reviewMovie="Test Movie", warningDescription= "TestWarning")
     assert WarningManager.readWarning("TestUser", "Title", "Test Movie") == warning
+
+#Favorite movie testspy
+def testRemoveFavoriteReview():
+    user = User(name="favUser2", email="fav2@test.com", password="password123")
+    UserController.createUser(user)
+    reviewer = User(name="reviewer14", email="rev14@test.com", password="password123")
+    UserController.createUser(reviewer)
+    reviewPayload = ReviewCreate(reviewer="reviewer14", rating=7, title="title", description="Test")
+    ReviewController.addReview("Test movie", reviewPayload)
+    
+    FavoriteManager.addFavorite("favUser2", "Test movie", "reviewer14", "title")
+
+    favorites = FavoriteManager.removeFavorite("favUser2", "Test movie", "reviewer14", "title")
+    assert len(favorites) == 0
+    is_fav = FavoriteManager.isFavorited("favUser2", "Test movie", "reviewer14", "title")
+    assert is_fav is False
+
+    ReviewController.removeReview("Test movie", "reviewer14", "title")
+    UserManager.deleteUser("favUser2")
+    UserManager.deleteUser("reviewer14")
+
+def testAddFavoriteUserNotFound():
+    with pytest.raises(HTTPException) as HTTPError:
+        FavoriteManager.addFavorite("NonExistentUser", "Test movie", "reviewer", "title")
+    assert "User not found" in str(HTTPError.value)
+
+def testAddFavoriteMovieNotFound():
+    user = User(name="favUser4", email="fav4@test.com", password="password123")
+    UserController.createUser(user)
+    
+    with pytest.raises(HTTPException) as HTTPError:
+        FavoriteManager.addFavorite("favUser4", "FakeMovie", "reviewer", "title")
+    assert "Movie not found" in str(HTTPError.value)
+    
+    UserManager.deleteUser("favUser4")
+
+def testAddFavoriteReviewNotFound():
+    user = User(name="favUser5", email="fav5@test.com", password="password123")
+    UserController.createUser(user)
+    reviewer = User(name="reviewer16", email="rev16@test.com", password="password123")
+    UserController.createUser(reviewer)
+    
+    with pytest.raises(HTTPException) as HTTPError:
+        FavoriteManager.addFavorite("favUser5", "Test movie", "reviewer16", "NonExistentReview")
+    assert "Review not found" in str(HTTPError.value)
+    
+    UserManager.deleteUser("favUser5")
+    UserManager.deleteUser("reviewer16")
+
+def testGetFavoritesUserNotFound():
+    with pytest.raises(HTTPException) as HTTPError:
+        FavoriteManager.getFavorites("NonExistentUser")
+    assert "User not found" in str(HTTPError.value)
+
+def testRemoveFavoriteUserNotFound():
+    with pytest.raises(HTTPException) as HTTPError:
+        FavoriteManager.removeFavorite("NonExistentUser", "Test movie", "reviewer", "title")
+    assert "User not found" in str(HTTPError.value)
+
+def testMultipleFavorites():
+    user = User(name="favUser6", email="fav6@test.com", password="password123")
+    UserController.createUser(user)
+    reviewer = User(name="reviewer17", email="rev17@test.com", password="password123")
+    UserController.createUser(reviewer)
+    review1 = ReviewCreate(reviewer="reviewer17", rating=8, title="Review A", description="Test")
+    ReviewController.addReview("Test movie", review1)
+    review2 = ReviewCreate(reviewer="reviewer17", rating=6, title="Review B", description="Test")
+    ReviewController.addReview("Test movie", review2)
+    
+    FavoriteManager.addFavorite("favUser6", "Test movie", "reviewer17", "Review A")
+    FavoriteManager.addFavorite("favUser6", "Test movie", "reviewer17", "Review B")
+    
+    favorites = FavoriteManager.getFavorites("favUser6")
+    assert len(favorites) == 2
+
+    FavoriteManager.removeFavorite("favUser6", "Test movie", "reviewer17", "Review A")
+    FavoriteManager.removeFavorite("favUser6", "Test movie", "reviewer17", "Review B")
+    ReviewController.removeReview("Test movie", "reviewer17", "Review A")
+    ReviewController.removeReview("Test movie", "reviewer17", "Review B")
+    UserManager.deleteUser("favUser6")
+    UserManager.deleteUser("reviewer17")
+
+def testIsFavoritedUserNotFound():
+    result = FavoriteManager.isFavorited("NonExistentUser", "Test movie", "reviewer", "title")
+    assert result is False
+
+def testGetFavoritesEmptyList():
+    user = User(name="favUser7", email="fav7@test.com", password="password123")
+    UserController.createUser(user)
+    
+    favorites = FavoriteManager.getFavorites("favUser7")
+    assert len(favorites) == 0
+    assert favorites == []
+    
+    UserManager.deleteUser("favUser7")

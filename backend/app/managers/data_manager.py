@@ -1,4 +1,4 @@
-from schemas.classes import Review, Movie, User, Session, Admin, Report, ProfilePic, Reply
+from schemas.classes import Review, Movie, User, Session, Admin, Report, ProfilePic, Reply, Favorite
 from pathlib import Path
 from datetime import datetime
 import shutil
@@ -311,3 +311,31 @@ class DataManager():
         picList = [ProfilePic(**picData) for picData in dictList]
         return picList
 
+
+    def getFavorites(self):
+        favoriteFile = self.dataFolder / "favorites.json"
+        if not favoriteFile.exists():
+            return [] 
+        try:
+            with open(favoriteFile, 'r', encoding='utf-8') as f:
+                dictList = json.load(f)
+                return [Favorite(**favData) for favData in dictList]
+        except (json.JSONDecodeError, TypeError, ValueError):
+            return []
+        
+    def writeFavorites(self, favorites:list):
+        favoriteFile = self.dataFolder / "favorites.json"
+
+        with open(favoriteFile, 'w', encoding="utf-8") as f:
+            json.dump([fav.__dict__ for fav in favorites], f, indent=4)
+        
+    def deleteFavorite(self, username:str, movie:str, reviewer:str, reviewTitle:str) -> bool:
+        favorites = self.getFavorites()
+
+        for i, fav in enumerate(favorites):
+            if (fav.username == username and fav.movie == movie and fav.reviewer == reviewer and fav.reviewTitle == reviewTitle):
+                favorites.pop(i)
+                self.writeFavorites(favorites)
+                return True
+        return False
+    
