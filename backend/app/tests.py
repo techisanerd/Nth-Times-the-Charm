@@ -197,7 +197,7 @@ def testEditReview():
     payload2 = ReviewCreate(reviewer ="TestUser1", rating = 7, title = "NEW TITLE", description = "NEW DESCRIPTION")
     ReviewController.editReview("Test Movie","Title",payload2)
     
-    reviewList = ReviewController.getReviewsByTitle("Test Movie","TestUser1", "Title")
+    reviewList = ReviewController.getReviewsByTitle("Test Movie","TestUser1", "NEW TITLE")
     for r in reviewList:
         assert r.title == "NEW TITLE" and r.description == "NEW DESCRIPTION"
         ReviewController.removeReview("Test Movie","TestUser1","NEW TITLE")

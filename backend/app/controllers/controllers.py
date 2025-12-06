@@ -263,7 +263,7 @@ class ProfilePicController():
 class AdminController():
 
     def createAdmin(payload:Admin):
-        admin = UserController.createUser(Admin)
+        admin = UserController.createUser(payload)
         if(AdminManager.readAdmin(payload.name) is not None):
             raise HTTPException(status_code = 400, detail = "400 Admin already exist with this name")
         AdminManager.writeUserToData(admin)
@@ -272,7 +272,7 @@ class AdminController():
         if(AdminManager.readAdmin(username)==None):
             raise HTTPException(status_code = 404, detail = "404 Admin Not Found")
         return AdminManager.readAdmin(username)
-    
+
 
 class AdminReviewController():
 

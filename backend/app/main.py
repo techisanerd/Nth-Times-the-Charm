@@ -1,5 +1,7 @@
 from fastapi import FastAPI 
 from routers.fastapi import routerMovie,routerReview,routerUser,routerExport,routerProfilePic,routerSession
+from routers.adminRouter import routerAdmin
+from routers.reportsRouter import routerReport
 
 title = "Nth Times the Charm Movie Review Api"
 description  = "Allows the retrivial of movies, reviews and users infomation, " \
@@ -17,3 +19,5 @@ app.include_router(routerUser)
 app.include_router(routerExport)
 app.include_router(routerSession)
 app.include_router(routerProfilePic)
+app.include_router(routerAdmin)
+app.include_router(routerReport)
