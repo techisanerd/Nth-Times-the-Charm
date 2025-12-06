@@ -1,7 +1,7 @@
 import pytest, bcrypt
 import json
 
-from datetime import date
+from datetime import date, datetime 
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from pathlib import Path
@@ -12,6 +12,7 @@ from controllers.controllers import UserController, ReviewController, MovieContr
 from managers.managers import UserManager, ReviewManager,MovieManager, SessionManager, AdminManager, WarningManager, ReportManager
 from schemas.classes import Movie, Review,Session,ReviewCreate,User, Admin, Report, ProfilePic, AdminWarning
 from main import app
+from routers.fastapi import routerSession
 
 originalMoviesFolder = " "
 
@@ -777,7 +778,7 @@ def testGetSession(tempSessionFolder):
     dm = tempSessionFolder
     s = Session("token123", "bob", datetime(2024, 6, 1, 10, 0, 0))
     dm.createSession(s)
-    found = dm.getSession("token123")
+    found = SessionManager.getSession("token123")
 
     assert found is not None
     assert found.token == "token123"
@@ -787,7 +788,7 @@ def testGetSession(tempSessionFolder):
 def testGetSessionNoFile(tempSessionFolder):
     dm = tempSessionFolder
 
-    result = dm.getSession("beeboop")
+    result = SessionManager.getSession("beeboop")
     assert result is None
 
 def testDeleteSession(tempSessionFolder):
@@ -797,7 +798,7 @@ def testDeleteSession(tempSessionFolder):
     dm.createSession(s1)
     dm.createSession(s2)
 
-    deleted = dm.deleteSession("token123")
+    deleted = SessionManager.deleteSession("token123")
     assert deleted is True
 
     remaining = dm._loadSession()
@@ -809,7 +810,7 @@ def testDeleteSessionNotFound(tempSessionFolder):
     s = Session("token123", "bob", datetime.now())
     dm.createSession(s)
 
-    deleted = dm.deleteSession("wahooooo")
+    deleted = SessionManager.deleteSession("wahooooo")
     assert deleted is False
 
     sessions = dm._loadSession()
@@ -826,8 +827,7 @@ def testGetSessionCorruptFile(tempSessionFolder):
     sessions = dm._loadSession()
     assert sessions == []
 
-def testSessionManagerCreate(tempSessionFolder):
-    dm = tempSessionFolder  
+def testSessionManagerCreate():
     t = datetime.now()
     session = SessionManager.createSession("abc123", "bob", t)
     assert session is not None
@@ -835,14 +835,13 @@ def testSessionManagerCreate(tempSessionFolder):
     assert session.username == "bob"
     assert session.created == t
 
-    stored = dm.getSession("abc123")
+    stored = SessionManager.getSession("abc123")
     assert stored is not None
     assert stored.token == "abc123"
     assert stored.username == "bob"
     assert stored.created == t
 
-def testSessionManagerPreventDuplicate(tempSessionFolder):
-    dm = tempSessionFolder
+def testSessionManagerPreventDuplicate():
     t = datetime.now()
     SessionManager.createSession("abc123", "bob", t)
     duplicate = SessionManager.createSession("abc123", "bob", t)
@@ -1085,6 +1084,80 @@ def testDeleteAccountNotFound():
     with pytest.raises(HTTPException) as excinfo:
         UserController.deleteAccount("NonExistentUser")
     assert "User not found" in str(excinfo.value)
+
+def test_create_session():
+
+    session = SessionManager.create_session("test_user")
+    assert session.username == "test_user"
+    assert session.token is not None
+
+def test_get_session():
+    session = SessionManager.create_session("test_user")
+    retrieved_session = SessionManager.getSession(session.token)
+    success = SessionManager.deleteSession(session.token)
+    assert retrieved_session.username == "test_user"
+
+def test_delete_session():
+    session = SessionManager.create_session("test_user")
+    success = SessionManager.deleteSession(session.token)
+    assert success is True
+    assert SessionManager.getSession(session.token) is None
+
+def test_login_success(monkeypatch):
+    monkeypatch.setattr(ProfilePicController,"searchByTags", randomJson)
+    client = TestClient(app)
+    response = client.post("/Users", json = {
+    "name": "Test",
+    "email": "test.Email",
+    "password": "correct_password"
+    })
+    response = client.post("/login", json={"name": "Test", "password": "correct_password"})
+    UserManager.deleteUser("Test")
+    assert response.status_code == 200
+    assert "token" in response.json()
+
+def test_login_failure(monkeypatch):
+    monkeypatch.setattr(ProfilePicController,"searchByTags", randomJson)
+    client = TestClient(app)
+    response = client.post("/Users", json = {
+    "name": "Test",
+    "email": "test.Email",
+    "password": "correct_password"
+    })
+    response = client.post("/login", json={"name": "Test", "password": "incorrect"})
+    UserManager.deleteUser("Test")
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid credentials"
+
+def test_logout():
+    client = TestClient(app)
+    client.post("/Users", json = {
+    "name": "Test",
+    "email": "test.Email",
+    "password": "correct_password",
+    "profilePictureURL" : "https://api.dicebear.com/9.x/icons/svg"
+    })
+    login_response = client.post("/login", json={"name": "Test", "password": "correct_password"})
+    token = login_response.json().get("token")
+    assert token is not None
+    logout_response = client.post("/logout?token=" + token)
+    UserManager.deleteUser("Test")
+    assert logout_response.status_code == 200
+    assert logout_response.json() is True
+
+def test_protected_route_success(monkeypatch):
+    monkeypatch.setattr(ProfilePicController,"searchByTags", randomJson)
+    client = TestClient(app)
+    response = client.post("/Users", json = {
+    "name": "Test",
+    "email": "test.Email",
+    "password": "correct_password"
+    })
+    login_response = client.post("/login", json={"name": "Test", "password": "correct_password"})
+    token = login_response.json()["token"]
+    response = client.get("/protected-route?token=" + token)
+    UserManager.deleteUser("Test")
+    assert response.status_code == 200
 
 
 
