@@ -15,6 +15,19 @@ from main import app
 
 originalMoviesFolder = " "
 
+@pytest.fixture
+def tempWarningFile(tmp_path):
+    folder = tmp_path / "tempData.json"
+    data = [{"reviewer": "TestUser",
+    "admin": "TestAdmin",
+    "reviewTitle": "TestTitle",
+    "reviewMovie": "TestMovie",
+    "warningDescription": "TestDescription"}]
+    folder.write_text(json.dumps(data), encoding="utf-8")
+
+    dm = DataManager.getInstance()
+    dm.warningFile = folder
+    return dm
 
 @pytest.fixture
 def tempUserFolder(tmp_path):
@@ -154,7 +167,7 @@ def testTooShortPassword():
     UserManager.deleteUser("TestUser")
     assert "Password should be 8 or more characters" in str(HTTPError.value)
 
-def testTakedownReview(tempAdminFolder, tempUserFolder, tempMoviesFileWithMovie,tempReviewFolder):
+def testTakedownReview(tempAdminFolder, tempUserFolder, tempMoviesFileWithMovie,tempReviewFolder, tempWarningFile):
     assert len(ReviewController.getReviewsByTitle("Test Movie", "TestUser1", "Title")) == 1
     AdminReviewController.takedownReview("TestAdmin1", "Test Movie", "TestUser1", "Title", "TestWarning")
     assert len(ReviewController.getReviewsByTitle("Test Movie", "TestUser1", "Title")) == 0
@@ -1073,25 +1086,14 @@ def testDeleteAccountNotFound():
         UserController.deleteAccount("NonExistentUser")
     assert "User not found" in str(excinfo.value)
 
-@pytest.fixture
-def tempWarningFile(tmp_path):
-    folder = tmp_path / "tempData.json"
-    data = [{"reviewer": "TestUser",
-    "admin": "TestAdmin",
-    "reviewTitle": "TestTitle",
-    "reviewMovie": "TestMovie",
-    "warningDescription": "TestDescription"}]
-    folder.write_text(json.dumps(data), encoding="utf-8")
 
-    dm = DataManager.getInstance()
-    dm.warningFile = folder
-    return dm
 
 def testUpdateWarning(tempWarningFile):
     warning = AdminWarning(reviewer = "TestUser", admin= "TestAdmin", reviewTitle = "NewTitle", reviewMovie = "TestMovie",
                            warningDescription= "New Description", warningDate = date(2025,12,4))
     WarningManager.updateWarning("TestTitle", warning)
     assert WarningManager.readWarning("TestUser", "NewTitle", "TestMovie") == warning
+
 #tests for report review
 @pytest.fixture
 def tempReportFolder(tmp_path):
