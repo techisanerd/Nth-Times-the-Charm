@@ -1,9 +1,9 @@
 from fastapi import APIRouter, status, Query, FastAPI
 from typing import List, Optional
 from datetime import datetime
-from controllers.controllers import ReviewController,MovieController,UserController,ReplyController
+from controllers.controllers import ReviewController,MovieController,UserController,ReplyController, ProfilePicController
 from managers.managers import MovieManager,ReviewManager, UserManager
-from schemas.classes import Movie,Review,MovieCreate,ReviewCreate,User,UserView,Reply,ReplyCreate
+from schemas.classes import Movie,Review,MovieCreate,ReviewCreate,User,UserView,Reply,ReplyCreate,ProfilePic
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
@@ -17,10 +17,26 @@ def get_movies():
     """Returns a json with the metadata for each movie."""
     return MovieManager.getMovies()
 
+@routerMovie.get("/sort/{sort_option}", response_model=List[Movie])
+def get_movies(sort_option:str):
+    """Returns a sorted list of all movies. sort_options must be one of
+      [\"rating\", \"dateReleased\", \"title\", \"metaScore\", \"ratingCount\", \"duration\"]"""
+    return MovieController.sortMovies((MovieManager.getMovies()), sort_option)
+
 @routerMovie.get("/{movie_title}", response_model=Movie)
 def get_movie(movie_title: str):
     """Return a json with the metadata for a specific movie matching the title exactly."""
     return MovieController.getMovie(movie_title)
+
+@routerMovie.get("/search/{movie_search}", response_model=List[Movie])
+def get_movies(movie_search:str):
+    """Returns a list of all movies with the movie_search in the title"""
+    return MovieController.searchByName(movie_search)
+
+@routerMovie.post("/filter", response_model=List[Movie])
+def get_movies(movieTags:list[str]):
+    """Returns a list of all movies that have the inputted genres, directors, actors and creators."""
+    return MovieController.searchByTags(movieTags)
 
 
 routerReview = APIRouter(prefix="/Reviews", tags=["Reviews"])
@@ -81,9 +97,35 @@ def get_user(username):
 
 @routerUser.post("", response_model=UserView)
 def post_user(payload:User):
-    """Create a new user. Profile Pic URL must be a valid url from https://api.dicebear.com"""
+    """Create a new user. Profile Pic URL must be from our list of accepted URL.
+      If no Profile pic is provided one will be chosen at random."""
     return UserController.createUser(payload)
 
+@routerUser.put("/{username}", response_model=Review)
+def put_user(username:str, payload:User):
+    return UserController.editUser(username, payload)
+
+
+
+routerProfilePic = APIRouter(prefix="/Pictures", tags=["Pictures"])
+
+@routerProfilePic.get("",response_model = List[str])
+def get_profile_pic_urls():
+    """Returns a list of all allowed URL for profile pictures."""
+    return ProfilePicController.searchByTags()
+
+
+@routerProfilePic.post("",response_model = str)
+def get_profile_pic_url(tags:list[str]):
+    """Returns a json with an allowed profile picture url that have the provided themes.
+    If there are multiple allowed profile pictures then it returns one of them chosen at random."""
+    return ProfilePicController.getProfilePic(tags)
+
+
+@routerProfilePic.get("/tags",response_model = List[str])
+def get_profile_pic_tags():
+    """Returns a list of all the themes for the profile pictures."""
+    return ProfilePicController.getAllTags()
 
 routerExport = APIRouter()
 

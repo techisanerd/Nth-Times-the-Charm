@@ -49,14 +49,19 @@ class UserController():
     def deleteAccount(name:str):
         user = UserManager.readUser(name)
         if user is None:
-            raise ValueError("User not found")
+            raise HTTPException(status_code= 404, detail = "404 User not found")
         
         success = UserManager.deleteUser(name)
 
         if not success:
-            raise ValueError("Failed to delete user")
+            raise HTTPException(status_code = 500, detail= "500 Something went wrong, please try again")
         
         return True
+    
+    def editUser(name:str, newUserDetails:User):
+        if(UserController.deleteAccount(name)):
+            user = UserController.createUser(newUserDetails)
+        return user
 
 class ReviewController():
 
@@ -175,8 +180,8 @@ class MovieController():
             return movies
         foundMovies = []
         for m in movies:
-            if (search.toLower() in movies.title.toLower()):
-                foundMovies.append
+            if search.lower() in (m.title).lower():
+                foundMovies.append(m)
         return foundMovies
     
     def getAllTags():

@@ -1,5 +1,5 @@
 from fastapi import FastAPI 
-from routers.fastapi import routerMovie,routerReview,routerUser,routerExport
+from routers.fastapi import routerMovie,routerReview,routerUser,routerExport,routerProfilePic
 
 title = "Nth Times the Charm Movie Review Api"
 description  = "Allows the retrivial of  movies, reviews and users infomation, " \
@@ -15,3 +15,4 @@ app.include_router(routerMovie)
 app.include_router(routerReview)
 app.include_router(routerUser)
 app.include_router(routerExport)
+app.include_router(routerProfilePic)
