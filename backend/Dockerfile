@@ -38,15 +38,19 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     --mount=type=bind,source=requirements.txt,target=requirements.txt \
     python -m pip install -r requirements.txt
 
-# Switch to the non-privileged user to run the application.
-USER appuser
 
 # Copy the source code into the container.
 COPY . .
+
+# Make data directory writable
+RUN chown -R appuser:appuser /app
+
+# Switch to the non-privileged user to run the application.
+USER appuser
 
 # Expose the port that the application listens on.
 EXPOSE 8000
 
 # Run the application.
 WORKDIR /app/app
-CMD gunicorn -k uvicorn.workers.UvicornWorker --bind=0.0.0.0:8000 main:app
+CMD gunicorn -w 1 -k uvicorn.workers.UvicornWorker --bind=0.0.0.0:8000 main:app

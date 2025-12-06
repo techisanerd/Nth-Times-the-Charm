@@ -166,10 +166,6 @@ class DataManager():
         shutil.rmtree(filepath)
         return True
     
-    def getData(self, filepath):
-        if os.path.exists(filepath):
-            with open(filepath, "r") as f:
-                return json.load(f)
     
     def getUsers(self):
         dictList = [] 
@@ -185,6 +181,12 @@ class DataManager():
         adminList = [Admin(**adminData) for adminData in dictList]
         return adminList
     
+    def getData(self, filepath):
+        if os.path.exists(filepath):
+            with open(filepath, "r") as f:
+                return json.load(f)
+
+
     def writeData(self, filepath, items:list):
         with open(filepath, "w") as file:
             json.dump([item.__dict__ for item in items], file, indent=4)
@@ -192,17 +194,12 @@ class DataManager():
 
     def writeUsers(self, users:list[User]):
         self.writeData(self.userFile, users)
-        #with open(self.userFile, "w") as file:
-            #store as a json: each user is converted to a dict(ionary) of its attributes, within the list
-            #json.dump([user.__dict__ for user in users], file, indent=4)
 
     def writeAdmins(self, admins:list[Admin]):
         self.writeData(self.adminFile, admins)
-        #with open(self.adminFile, "w") as file:
-            #json.dump([admin.__dict__ for admin in admins], file, indent=4)
 
     #session functions
-    
+
     def _loadSession(self) -> list:
         sessionFile = self.dataFolder / "sessions.json"
 
@@ -234,28 +231,6 @@ class DataManager():
         self._writeSession(sessions)
         return True
     
-       
-    def deleteSession(self, token: str) -> bool:
-        sessions = self._loadSession()
-        initialCount = len(sessions)
-
-        sessions = [s for s in sessions if s.token != token]
-
-        if len(sessions) == initialCount:
-            return False
-
-        self._writeSession(sessions)
-        return True
-
-    def getSession(self, token: str):
-        sessions = self._loadSession()
-
-        for s in sessions:
-            if s.token == token:
-                return s
-
-        return None    
- 
 
     def getMovies(self) -> list:
         movies = []
