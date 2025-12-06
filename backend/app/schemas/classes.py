@@ -98,7 +98,7 @@ class MovieCreate(BaseModel):
 
     # represents a user login
 class LoginRequest(BaseModel):
-    username: str
+    name: str
     password: str
 
 

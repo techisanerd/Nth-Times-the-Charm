@@ -26,6 +26,7 @@ class UserController():
     def hashPassword(passwordPlaintext:str):
         hashed = bcrypt.hashpw(passwordPlaintext.encode(), bcrypt.gensalt())
         return hashed.decode()
+
     
     def getUser(username:str):
         if(UserManager.readUser(username)==None):

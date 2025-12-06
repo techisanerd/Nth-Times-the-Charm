@@ -126,7 +126,6 @@ class ReviewManager():
         dataMan = DataManager.getInstance()
         return dataMan.readReviews(movie)
 
-
 class ReplyManager:
     @staticmethod
     def addReply(movie, reviewAuthor, reviewTitle, replyAuthor, replyText):

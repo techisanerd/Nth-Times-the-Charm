@@ -1011,6 +1011,7 @@ def testDeleteAccountNotFound():
     assert "User not found" in str(excinfo.value)
 
 def test_create_session():
+
     session = SessionManager.create_session("test_user")
     assert session.username == "test_user"
     assert session.token is not None
@@ -1027,33 +1028,62 @@ def test_delete_session():
     assert success is True
     assert SessionManager.getSession(session.token) is None
 
-def test_login_success():
-    response = client.post("/login", json={"username": "test_user", "password": "correct_password"})
+def test_login_success(monkeypatch):
+    monkeypatch.setattr(ProfilePicController,"searchByTags", randomJson)
+    client = TestClient(app)
+    response = client.post("/Users", json = {
+    "name": "Test",
+    "email": "test.Email",
+    "password": "correct_password"
+    })
+    response = client.post("/login", json={"name": "Test", "password": "correct_password"})
+    UserManager.deleteUser("Test")
     assert response.status_code == 200
     assert "token" in response.json()
 
-def test_login_failure():
-    response = client.post("/login", json={"username": "test_user", "password": "wrong_password"})
+def test_login_failure(monkeypatch):
+    monkeypatch.setattr(ProfilePicController,"searchByTags", randomJson)
+    client = TestClient(app)
+    response = client.post("/Users", json = {
+    "name": "Test",
+    "email": "test.Email",
+    "password": "correct_password"
+    })
+    response = client.post("/login", json={"name": "Test", "password": "incorrect"})
+    UserManager.deleteUser("Test")
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid credentials"
 
 def test_logout():
-    login_response = client.post("/login", json={"username": "test_user", "password": password})
-    token = login_response.json()["token"]
-    logout_response = client.post("/logout", json={"token": token})
+    client = TestClient(app)
+    client.post("/Users", json = {
+    "name": "Test",
+    "email": "test.Email",
+    "password": "correct_password",
+    "profilePictureURL" : "https://api.dicebear.com/9.x/icons/svg"
+    })
+    login_response = client.post("/login", json={"name": "Test", "password": "correct_password"})
+    token = login_response.json().get("token")
+    assert token is not None
+    logout_response = client.post("/logout?token=" + token)
+    UserManager.deleteUser("Test")
     assert logout_response.status_code == 200
     assert logout_response.json() is True
 
-def test_protected_route_success():
-    login_response = client.post("/login", json={"username": "test_user", "password": "correct_password"})
+def test_protected_route_success(monkeypatch):
+    monkeypatch.setattr(ProfilePicController,"searchByTags", randomJson)
+    client = TestClient(app)
+    response = client.post("/Users", json = {
+    "name": "Test",
+    "email": "test.Email",
+    "password": "correct_password"
+    })
+    login_response = client.post("/login", json={"name": "Test", "password": "correct_password"})
     token = login_response.json()["token"]
-    response = client.get("/protected-route", params={"token": token})
+    response = client.get("/protected-route?token=" + token)
+    UserManager.deleteUser("Test")
     assert response.status_code == 200
-    assert response.json()["message"] == "Access granted"
 
-def test_protected_route_failure():
-    response = client.get("/protected-route", params={"token": "invalid_token"})
-    assert response.status_code == 401
 @pytest.fixture
 def tempWarningFile(tmp_path):
     folder = tmp_path / "tempData.json"

@@ -1,33 +1,37 @@
 from fastapi import APIRouter, status, Query
 from typing import List, Optional
 from datetime import datetime
+from managers.data_manager import DataManager
 from controllers.controllers import ReviewController,MovieController,UserController,ReplyController
 from managers.managers import MovieManager,ReviewManager, UserManager, SessionManager
 from schemas.classes import Movie,Review,MovieCreate,ReviewCreate,User,UserView,Reply,ReplyCreate, LoginRequest
 from fastapi import FastAPI
+import bcrypt
 from fastapi.responses import JSONResponse
 from fastapi import HTTPException, Depends
 routerSession = APIRouter(tags=["Auth"])
 
 @routerSession.post("/login")
 def login(request: LoginRequest):
-    user_data = UserManager.getUsers()
-    if request.username not in user_data or user_data[request.username]['password'] != UserController.hashPassword(request.password):
+    matchingUsername = UserManager.readUser(request.name)
+    if matchingUsername is None or not bcrypt.checkpw(request.password.encode(), matchingUsername.password.encode()):
+        print(matchingUsername)
+        print(UserController.hashPassword(request.password))
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    session = SessionManager.create_session(request.username)
+    session = SessionManager.create_session(request.name)
     return {"token": session.token}
 
 @routerSession.post("/logout")
 def logout(token: str):
-    return SessionManager.delete_session(token)
+    return SessionManager.deleteSession(token)
 
 @routerSession.get("/protected-route")
 def protected_route(token: str):
     session = SessionManager.getSession(token)
     if not session or not session.is_valid():
         raise HTTPException(status_code=401, detail="Invalid or expired token")
-    return 200
+    return {"message": "Access granted"}
 
 routerMovie = APIRouter(prefix="/Movies", tags=["Movies"])
 
