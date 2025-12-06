@@ -3,8 +3,8 @@ from fastapi import HTTPException
 from datetime import datetime
 from managers.data_manager import DataManager
 from managers.managers import UserManager
-from managers.managers import ReviewManager, MovieManager, AdminManager, ReplyManager
-from schemas.classes import Review, User, ReviewCreate, Admin, Movie
+from managers.managers import ReviewManager, MovieManager, AdminManager, ReplyManager, WarningManager
+from schemas.classes import Review, User, ReviewCreate, Admin, Movie, AdminWarning
 from random import randrange
 
 class UserController():
@@ -50,14 +50,19 @@ class UserController():
     def deleteAccount(name:str):
         user = UserManager.readUser(name)
         if user is None:
-            raise ValueError("User not found")
+            raise HTTPException(status_code= 404, detail = "404 User not found")
         
         success = UserManager.deleteUser(name)
 
         if not success:
-            raise ValueError("Failed to delete user")
+            raise HTTPException(status_code = 500, detail= "500 Something went wrong, please try again")
         
         return True
+    
+    def editUser(name:str, newUserDetails:User):
+        if(UserController.deleteAccount(name)):
+            user = UserController.createUser(newUserDetails)
+        return user
 
 class ReviewController():
 
@@ -176,8 +181,8 @@ class MovieController():
             return movies
         foundMovies = []
         for m in movies:
-            if (search.toLower() in movies.title.toLower()):
-                foundMovies.append
+            if search.lower() in (m.title).lower():
+                foundMovies.append(m)
         return foundMovies
     
     def getAllTags():
@@ -271,12 +276,13 @@ class AdminController():
 
 class AdminReviewController():
 
-    def takedownReview(adminName:str, movie:str, username:str, reviewTitle:str):
+    def takedownReview(adminName:str, movie:str, username:str, reviewTitle:str, warningDescription):
         AdminController.getAdmin(adminName)
         MovieController.getMovie(movie)
         try:
             UserController.getUser(username)
-            #TODO give warning to user
+            warning = AdminWarning(reviewer= username, admin=adminName, reviewMovie= movie,reviewTitle= reviewTitle,warningDescription= warningDescription)
+            WarningManager.createWarning(warning)
         except:
             pass
         ReviewController.removeReview(movie, username, reviewTitle) #TODO make it so only admins can delete a review that isn't theirs

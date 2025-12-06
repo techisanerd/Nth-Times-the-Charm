@@ -8,14 +8,99 @@ from pathlib import Path
 import random
 from datetime import datetime, date
 from managers.data_manager import DataManager
-from controllers.controllers import UserController, ReviewController, MovieController, ProfilePicController
-from managers.managers import UserManager, ReviewManager,MovieManager, SessionManager, AdminManager, WarningManager
+from controllers.controllers import UserController, ReviewController, MovieController, ProfilePicController, AdminReviewController
+from managers.managers import UserManager, ReviewManager,MovieManager, SessionManager, AdminManager, WarningManager, ReportManager
 from schemas.classes import Movie, Review,Session,ReviewCreate,User, Admin, Report, ProfilePic, AdminWarning
 from main import app
 from routers.fastapi import routerSession
 
 originalMoviesFolder = " "
 
+@pytest.fixture
+def tempWarningFile(tmp_path):
+    folder = tmp_path / "tempData.json"
+    data = [{"reviewer": "TestUser",
+    "admin": "TestAdmin",
+    "reviewTitle": "TestTitle",
+    "reviewMovie": "TestMovie",
+    "warningDescription": "TestDescription"}]
+    folder.write_text(json.dumps(data), encoding="utf-8")
+
+    dm = DataManager.getInstance()
+    dm.warningFile = folder
+    return dm
+
+@pytest.fixture
+def tempUserFolder(tmp_path):
+    folder = tmp_path / "tempusers.json"
+    data = [{"name":"TestUser1",
+    "email": "Test@Email",
+    "profilePicURL": "https://api.dicebear.com/9.x/shapes/svg",
+    "password":"0xABCDEF"}]
+    folder.write_text(json.dumps(data), encoding="utf-8")
+    dm = DataManager.getInstance()
+    dm.userFile = folder
+    return dm
+
+@pytest.fixture
+def tempAdminFolder(tmp_path):
+    folder = tmp_path / "tempadmins.json"
+    data = [{"name":"TestAdmin1",
+    "email": "Test@Email",
+    "profilePicURL": "https://api.dicebear.com/9.x/shapes/svg",
+    "password":"0xABCDEF"}]
+    folder.write_text(json.dumps(data), encoding="utf-8")
+    dm = DataManager.getInstance()
+    dm.adminFile = folder
+    return dm
+
+@pytest.fixture
+def tempMoviesFileWithMovie(tempMoviesFolder):
+    folder = tempMoviesFolder.moviesFolder / "Test Movie" 
+    folder.mkdir()
+    tempMoviesFile = folder / "metadata.json"
+    data = {"title": "Test Movie",
+        "movieIMDbRating":7.5,
+        "totalRatingCount":1500,
+        "totalUserReviews":"300",
+        "totalCriticReviews":50,
+        "metaScore":65,
+        "movieGenres":["Drama", "Thriller"],
+        "directors":["Jane Doe"],
+        "datePublished": "2017-11-03",
+        "creators": ["John Smith"],
+        "mainStars":["Actor A", "Actor B"],
+        "description":"A test movie for unit testing.",
+        "duration":125}
+    tempMoviesFile.write_text(json.dumps(data),encoding="utf-8")
+    folder2 = tempMoviesFolder.moviesFolder / "Test Movie 2" 
+    folder2.mkdir()
+    tempMoviesFile2 = folder2 / "metadata.json"
+    data2 = {"title": "Test Movie 2",
+        "movieIMDbRating":8.5,
+        "totalRatingCount":1600,
+        "totalUserReviews":"350",
+        "totalCriticReviews":30,
+        "metaScore":67,
+        "movieGenres":["Drama", "Crime", "Humor"],
+        "directors":["Jane Doe"],
+        "datePublished": "2017-11-03",
+        "creators": ["John Smith"],
+        "mainStars":["Actor A", "Actor B"],
+        "description":"A second test movie for unit testing.",
+        "duration":125}
+    tempMoviesFile2.write_text(json.dumps(data2),encoding="utf-8")
+    dm = DataManager.getInstance()
+    dm.moviesFolder = tempMoviesFolder.moviesFolder
+    return folder
+
+@pytest.fixture
+def tempReviewFolder(tempMoviesFileWithMovie):
+    folder = tempMoviesFileWithMovie /"testReviews.csv"
+    folder.write_text("4 December 2025,TestUser1,0,1,6,Title,\"Test Description\"\n4 December 2025,TestUser1,0,1,6,Title2,\"Test Description for second review\"", encoding="utf-8")
+    dm = DataManager.getInstance()
+    dm.reviewFile = folder
+    return dm
 
 def testSingleton():
     """Testing that we only get one instance of DataManager"""
@@ -23,7 +108,7 @@ def testSingleton():
     dataManager2 = DataManager.getInstance()
     assert dataManager1 == dataManager2
 
-def testUserManager():
+def testUserManager(tempUserFolder):
     UserManager.createUser(name="TESTUSER",email="mail@example.com", profilePicURL="https://profilepic.example.com", password="0xabcdefg")
     u = UserManager.readUser("TESTUSER")
     UserManager.deleteUser("TESTUSER")
@@ -37,7 +122,7 @@ def testUpdateUser():
     UserManager.deleteUser("NEWTESTUSER")
     assert UserManager.readUser("TESTUSER") == None and v.name == "NEWTESTUSER"
 
-def testAdminManager():
+def testAdminManager(tempAdminFolder):
     admin = Admin(name="TestAdmin",email="mail@example.com",profilePicURL="https://profilepic.example.com",password="0xabcdefg")
     AdminManager.writeUserToData(admin)
     u = AdminManager.readAdmin("TestAdmin")
@@ -83,10 +168,17 @@ def testTooShortPassword():
     UserManager.deleteUser("TestUser")
     assert "Password should be 8 or more characters" in str(HTTPError.value)
 
-def testAddReviewInvalidUser():
+def testTakedownReview(tempAdminFolder, tempUserFolder, tempMoviesFileWithMovie,tempReviewFolder, tempWarningFile):
+    assert len(ReviewController.getReviewsByTitle("Test Movie", "TestUser1", "Title")) == 1
+    AdminReviewController.takedownReview("TestAdmin1", "Test Movie", "TestUser1", "Title", "TestWarning")
+    assert len(ReviewController.getReviewsByTitle("Test Movie", "TestUser1", "Title")) == 0
+    warning = AdminWarning(reviewer="TestUser1",admin="TestAdmin1", reviewTitle= "Title",reviewMovie="Test Movie", warningDescription= "TestWarning")
+    assert WarningManager.readWarning("TestUser1", "Title", "Test Movie") == warning
+
+def testAddReviewInvalidUser(tempReviewFolder, tempMoviesFileWithMovie):
     with pytest.raises(HTTPException) as HTTPError:
         payload = ReviewCreate(reviewer ="Non-Existant-User",rating = 7, title = "hi", description = "hi")
-        ReviewController.addReview("Joker",payload)
+        ReviewController.addReview("Test Movie",payload)
     assert "User not found" in str(HTTPError.value)
 
 def testAddReviewInvalidMovie():
@@ -96,46 +188,34 @@ def testAddReviewInvalidMovie():
     assert "Movie not found" in str(HTTPError.value)
 
 def testAddReviewInvalidRating():
-    user = User(name="TestUser",email="mail@example.com",password="PlainTextPassword")
-    UserController.createUser(user)
     with pytest.raises(HTTPException) as HTTPError:
-        payload = ReviewCreate(reviewer ="TestUser",rating = 11, title = "hi", description = "hi")
-        ReviewController.addReview("Joker",payload)
-    UserManager.deleteUser("TestUser")
+        payload = ReviewCreate(reviewer ="TestUser1",rating = 11, title = "hi", description = "hi")
+        ReviewController.addReview("Test Movie",payload)
     assert "Rating needs to be an integer between 0 and 10" in str(HTTPError.value)
 
 def testEditReview():
-    user = User(name="TestUser",email="mail@example.com",password="PlainTextPassword")
-    UserController.createUser(user)
-    payload = ReviewCreate(reviewer ="TestUser", rating = 7, title = "hi", description = "hi")
-    ReviewController.addReview("Joker",payload)
-    payload2 = ReviewCreate(reviewer ="TestUser", rating = 7, title = "NEW TITLE", description = "NEW DESCRIPTION")
-    ReviewController.editReview("Joker","hi",payload2)
+    payload2 = ReviewCreate(reviewer ="TestUser1", rating = 7, title = "NEW TITLE", description = "NEW DESCRIPTION")
+    ReviewController.editReview("Test Movie","Title",payload2)
     
-    reviewList = ReviewManager.readReview("Joker","TestUser")
+    reviewList = ReviewController.getReviewsByTitle("Test Movie","TestUser1", "Title")
     for r in reviewList:
         assert r.title == "NEW TITLE" and r.description == "NEW DESCRIPTION"
-        ReviewController.removeReview("Joker","TestUser","NEW TITLE")
-    UserManager.deleteUser("TestUser")
+        ReviewController.removeReview("Test Movie","TestUser1","NEW TITLE")
 
 def testSearchReviews():
-    user = User(name="TestUser",email="mail@example.com",password="PlainTextPassword")
-    UserController.createUser(user)
-    user = User(name="TestUser2",email="mail@example.com",password="PlainTextPassword")
-    UserController.createUser(user)
-    payload = ReviewCreate(reviewer ="TestUser",rating = 7, title = "hi", description = "hi")
-    ReviewController.addReview("Joker",payload)
-    payload = ReviewCreate(reviewer ="TestUser2",rating = 7, title = "no", description = "hi")
-    ReviewController.addReview("Joker",payload)
-    reviewList = ReviewController.searchByName("Joker","H")
+    payload = ReviewCreate(reviewer ="TestUser1",rating = 7, title = "hi", description = "hi")
+    ReviewController.addReview("Test Movie",payload)
+    payload = ReviewCreate(reviewer ="TestUser1",rating = 7, title = "no", description = "hi")
+    ReviewController.addReview("Test Movie",payload)
+    reviewList = ReviewController.searchByName("Test Movie","H")
     reviewTitles = []
-    ReviewController.removeReview("Joker","TestUser","hi")
-    ReviewController.removeReview("Joker","TestUser2","no")
-    UserManager.deleteUser("TestUser")
-    UserManager.deleteUser("TestUser2")
+    ReviewController.removeReview("Test Movie","TestUser1","hi")
+    ReviewController.removeReview("Test Movie","TestUser1","no")
     for r in reviewList:
         reviewTitles.append(r.title)
     assert "hi" in reviewTitles and "no" not in reviewTitles
+
+
 
 #2 tests for exporting reviews to json files
 client = TestClient(app)
@@ -210,14 +290,14 @@ def testSearchMoviesTag():
     movieTitles = []
     for m in foundMovies:
         movieTitles.append(m.title)
-    assert "Joker" in movieTitles and "Forrest Gump" not in movieTitles #Note: joker has crime tag while forrest gump does not
+    assert "Test Movie 2" in movieTitles and "Test Movie" not in movieTitles 
 
 def testSearchMultipleTagsMovies():
-    foundMovies = MovieController.searchByTags(["Action","Fantasy"])
+    foundMovies = MovieController.searchByTags(["Drama","Thriller"])
     movieTitles = []
     for m in foundMovies:
         movieTitles.append(m.title)
-    assert "SpiderMan No Way Home" in movieTitles and "Morbius" not in movieTitles #Note: spiderman has both tags but morbius only has one
+    assert "Test Movie" in movieTitles and "Test Movie 2" not in movieTitles 
 #tests for movie manager functions
 
 #create temp movie directory for testing 
@@ -399,11 +479,9 @@ def testGetMovies(tempMoviesFolder):
 
 
 def testReviewManager():
-    dm = DataManager.getInstance()
-    dm.moviesFolder = originalMoviesFolder
 
     review = ReviewManager.createReview(
-            movie="The Avengers",
+            movie="Test Movie",
             reviewDate=datetime.now().date(),
             reviewer="TESTUSER",
             usefulnessVote=1,
@@ -413,7 +491,7 @@ def testReviewManager():
             description="dest desc.")
 
     review = ReviewManager.updateReview(
-        "The Avengers",
+        "Test Movie",
         review,
         title="updated title",
         description="updated desc"
@@ -421,15 +499,13 @@ def testReviewManager():
     assert review.title == "updated title"
     assert review.description == "updated desc"
 
-    result = ReviewManager.deleteReview("The Avengers", review)
+    result = ReviewManager.deleteReview("Test Movie", review)
     assert result is True
 
 def testDataManagerReview():
-    dm = DataManager.getInstance()
-    dm.moviesFolder = originalMoviesFolder
 
     dataMan = DataManager.getInstance()
-    reviewList = dataMan.readReviews("The Avengers")
+    reviewList = dataMan.readReviews("Test Movie")
     
     original_count = len(reviewList)
     review =Review(
@@ -444,68 +520,67 @@ def testDataManagerReview():
 
 
     reviewList.append(review)
-    dataMan.writeReviews("The Avengers", reviewList)
+    dataMan.writeReviews("Test Movie", reviewList)
 
-    newList = dataMan.readReviews("The Avengers")
+    newList = dataMan.readReviews("Test Movie")
     assert len(newList) == original_count + 1
 
     newList.pop()
-    dataMan.writeReviews("The Avengers", newList)
+    dataMan.writeReviews("Test Movie", newList)
 
 
-
-def testApiGetReviews():
+def testApiGetReviews( tempMoviesFileWithMovie,tempReviewFolder):
     
     client = TestClient(app)
-    response = client.get("/Reviews/Thor Ragnarok")
+    response = client.get("/Reviews/Test Movie")
     assert response.status_code == 200
-    assert {
-    "reviewer": "auuwws",
-    "usefulnessVote": 22,
-    "totalVotes": 32,
-    "rating": 9,
-    "title": "Ragnarok",
-    "description": "The best movie for a separate character from a Marvel movie is a very funny movie even though the villain is frustrated. After you smashed Thor's hammer, you didn't do the big thing.",
-    "reviewDate": "2020-10-12",
+    assert { 
+    "reviewer": "TestUser1",
+    "usefulnessVote": 0,
+    "totalVotes": 1,
+    "rating": 6,
+    "title": "Title",
+    "description": "Test Description",
+    "reviewDate": "2025-12-04",
     } in response.json()
 
 def testApiGetReview():
     
     client = TestClient(app)
-    response = client.get("/Reviews/Thor Ragnarok/rag")
+    response = client.get("/Reviews/Test Movie/2")
     assert response.status_code == 200
-    assert {
-    "reviewer": "auuwws",
-    "usefulnessVote": 22,
-    "totalVotes": 32,
-    "rating": 9,
-    "title": "Ragnarok",
-    "description": "The best movie for a separate character from a Marvel movie is a very funny movie even though the villain is frustrated. After you smashed Thor's hammer, you didn't do the big thing.",
-    "reviewDate": "2020-10-12",
-    } in response.json()
-    assert {
-        "reviewer": "twegienk-03403",
-        "usefulnessVote": 14,
-        "totalVotes": 24,
-        "rating": 3,
-        "title": "Everything was a pun",
-        "description": "I did not enjoy this film. The humor was out of place with the narrative. Everything was a set up for a pun or joke. Their home explodes and boom! Someone makes a joke.",
-        "reviewDate": "2021-02-25"
+    assert { 
+    "reviewer": "TestUser1",
+    "usefulnessVote": 0,
+    "totalVotes": 1,
+    "rating": 6,
+    "title": "Title",
+    "description": "Test Description",
+    "reviewDate": "2025-12-04",
     } not in response.json()
+    assert { 
+    "reviewer": "TestUser1",
+    "usefulnessVote": 0,
+    "totalVotes": 1,
+    "rating": 6,
+    "title": "Title2",
+    "description": "Test Description for second review",
+    "reviewDate": "2025-12-04",
+    } in response.json()
 
-def testApiGetReviewNoInput():
+def testApiGetReviewNoInput(tempReviewFolder):
     
     client = TestClient(app)
-    response = client.get("/Reviews/Thor Ragnarok/")
+    response = client.get("/Reviews/Test Movie/")
     assert response.status_code == 200
-    assert {
-    "reviewer": "auuwws",
-    "usefulnessVote": 22,
-    "totalVotes": 32,
-    "rating": 9,
-    "title": "Ragnarok",
-    "description": "The best movie for a separate character from a Marvel movie is a very funny movie even though the villain is frustrated. After you smashed Thor's hammer, you didn't do the big thing.",
-    "reviewDate": "2020-10-12",
+    assert { 
+    "reviewer": "TestUser1",
+    "usefulnessVote": 0,
+    "totalVotes": 1,
+    "rating": 6,
+    "title": "Title",
+    "description": "Test Description",
+    "reviewDate": "2025-12-04",
     } in response.json()
 
 def testApiPostDeleteReview():
@@ -514,7 +589,7 @@ def testApiPostDeleteReview():
     client = TestClient(app)
     currentDate = datetime.now().date()
     currentDate = currentDate.strftime("%Y-%m-%d")
-    response = client.post("/Reviews/Thor Ragnarok/", json = {
+    response = client.post("/Reviews/Test Movie/", json = {
   "reviewer": "TestUser",
   "rating": 5,
   "title": "hi",
@@ -531,47 +606,47 @@ def testApiPostDeleteReview():
   "reviewDate": f"{currentDate}",
 } == response.json()
     
-    response = client.delete("/Reviews/Thor Ragnarok/TestUser/hi")
+    response = client.delete("/Reviews/Test Movie/TestUser/hi")
     assert response.status_code == 204
     UserManager.deleteUser("TestUser")
 
-def testApiGetMovies():
+def testApiGetMovies(tempMoviesFileWithMovie):
     
     client = TestClient(app)
     response = client.get("/Movies")
     assert response.status_code == 200
-    assert {"title": "SpiderMan No Way Home", 
-            "rating": 8.3, 
-            "ratingCount": 675951, 
-            "userReviews": "6K", 
-            "criticReviews": 396, 
-            "metaScore": 71, 
-            "genres": ["Action", "Adventure", "Fantasy"], 
-            "directors": ["Jon Watts"],
-            "dateReleased": "2021-12-17", 
-            "creators": ["Chris McKenna", "Erik Sommers", "Stan Lee"], 
-            "actors": ["Tom Holland", "Zendaya", "Benedict Cumberbatch"], 
-            "description": "With Spider-Man's identity now revealed, Peter asks Doctor Strange for help. When a spell goes wrong, dangerous foes from other worlds start to appear, forcing Peter to discover what it truly means to be Spider-Man.", 
-            "duration": 148} in response.json()
+    assert {"title": "Test Movie",
+        "rating":7.5,
+        "ratingCount":1500,
+        "userReviews":"300",
+        "criticReviews":50,
+        "metaScore":65,
+        "genres":["Drama", "Thriller"],
+        "directors":["Jane Doe"],
+        "dateReleased": "2017-11-03",
+        "creators": ["John Smith"],
+        "actors":["Actor A", "Actor B"],
+        "description":"A test movie for unit testing.",
+        "duration":125} in response.json()
     
 def testApiGetMovie():
     
     client = TestClient(app)
-    response = client.get("/Movies/SpiderMan No Way Home")
+    response = client.get("/Movies/Test Movie")
     assert response.status_code == 200
-    assert {"title": "SpiderMan No Way Home", 
-            "rating": 8.3, 
-            "ratingCount": 675951, 
-            "userReviews": "6K", 
-            "criticReviews": 396, 
-            "metaScore": 71, 
-            "genres": ["Action", "Adventure", "Fantasy"], 
-            "directors": ["Jon Watts"],
-            "dateReleased": "2021-12-17", 
-            "creators": ["Chris McKenna", "Erik Sommers", "Stan Lee"], 
-            "actors": ["Tom Holland", "Zendaya", "Benedict Cumberbatch"], 
-            "description": "With Spider-Man's identity now revealed, Peter asks Doctor Strange for help. When a spell goes wrong, dangerous foes from other worlds start to appear, forcing Peter to discover what it truly means to be Spider-Man.", 
-            "duration": 148} == response.json()
+    assert {"title": "Test Movie",
+        "rating":7.5,
+        "ratingCount":1500,
+        "userReviews":"300",
+        "criticReviews":50,
+        "metaScore":65,
+        "genres":["Drama", "Thriller"],
+        "directors":["Jane Doe"],
+        "dateReleased": "2017-11-03",
+        "creators": ["John Smith"],
+        "actors":["Actor A", "Actor B"],
+        "description":"A test movie for unit testing.",
+        "duration":125} == response.json()
 
 
 def randomJson(tags):
@@ -1006,7 +1081,7 @@ def testDeleteAccount():
     assert user is None
 
 def testDeleteAccountNotFound():
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(HTTPException) as excinfo:
         UserController.deleteAccount("NonExistentUser")
     assert "User not found" in str(excinfo.value)
 
@@ -1084,25 +1159,14 @@ def test_protected_route_success(monkeypatch):
     UserManager.deleteUser("Test")
     assert response.status_code == 200
 
-@pytest.fixture
-def tempWarningFile(tmp_path):
-    folder = tmp_path / "tempData.json"
-    data = [{"reviewer": "TestUser",
-    "admin": "TestAdmin",
-    "reviewTitle": "TestTitle",
-    "reviewMovie": "TestMovie",
-    "warningDescription": "TestDescription"}]
-    folder.write_text(json.dumps(data), encoding="utf-8")
 
-    dm = DataManager.getInstance()
-    dm.warningFile = folder
-    return dm
 
 def testUpdateWarning(tempWarningFile):
     warning = AdminWarning(reviewer = "TestUser", admin= "TestAdmin", reviewTitle = "NewTitle", reviewMovie = "TestMovie",
                            warningDescription= "New Description", warningDate = date(2025,12,4))
     WarningManager.updateWarning("TestTitle", warning)
     assert WarningManager.readWarning("TestUser", "NewTitle", "TestMovie") == warning
+
 #tests for report review
 @pytest.fixture
 def tempReportFolder(tmp_path):
@@ -1233,3 +1297,191 @@ def testDeleteReportEmptyList(tempReportFolder):
 
     result = dm.deleteReports("weebleworble")
     assert result is False
+
+
+
+
+def testReportManagerCreate():
+    user1 = User(name="reviewer1", email="reviewer1@gmail.com", password="password123")
+    user2 = User(name="reporter1", email="reporter1@gmail.com", password="password456")
+    UserController.createUser(user1)
+    UserController.createUser(user2)
+
+    reviewStuff = ReviewCreate(reviewer="reviewer1", rating=5, title="test review 1", description="this movie was terrible")
+    ReviewController.addReview("Test Movie", reviewStuff)
+
+    report = ReportManager.createReport(
+        movie="Test Movie",
+        reviewer="reviewer1",
+        reviewTitle="test review 1",
+        reporter="reporter1",
+        reason="Inappropriate content"
+    )
+
+    assert report is not None
+    assert report.movie == "Test Movie"
+    assert report.reviewer == "reviewer1"
+    assert report.reviewTitle == "test review 1"
+    assert report.reporter == "reporter1"
+    assert report.reason == "Inappropriate content"
+    assert report.reportId is not None
+
+    ReportManager.deleteReports(report.reportId)
+    ReviewController.removeReview("Test Movie", "reviewer1", "test review 1")
+    UserManager.deleteUser("reviewer1")
+    UserManager.deleteUser("reporter1")
+
+def testGetReportsManager():
+    user1 = User(name="reviewer2", email="reviewer2@gmail.com", password="password123")
+    user2 = User(name="reporter2", email="reporter2@gmail.com", password="password456")
+    UserController.createUser(user1)
+    UserController.createUser(user2)
+
+    reviewStuff = ReviewCreate(reviewer="reviewer2", rating=5, title="test review 2", description="this movie was terrible")
+    ReviewController.addReview("Test Movie", reviewStuff)
+
+    report1 = ReportManager.createReport("Test Movie", "reviewer2", "test review 2", "reporter2", "Inappropriate content")
+    report2 = ReportManager.createReport("Test Movie", "reviewer2", "test review 2", "reporter2", "Spam")
+
+    allReports = ReportManager.getReports()
+    assert len(allReports) >= 2
+    reportIds = [report.reportId for report in allReports]
+    assert report1.reportId in reportIds
+    assert report2.reportId in reportIds
+
+    ReportManager.deleteReports(report1.reportId)
+    ReportManager.deleteReports(report2.reportId)
+    ReviewController.removeReview("Test Movie", "reviewer2", "test review 2")
+    UserManager.deleteUser("reviewer2")
+    UserManager.deleteUser("reporter2")
+
+def testCreateReportMovieNotFound():
+    with pytest.raises(HTTPException) as HTTPError:
+        ReportManager.createReport(
+            movie="NonExistentMovie",
+            reviewer="someuser",
+            reviewTitle="title",
+            reporter="reporter",
+            reason="spam"
+        )
+    assert "Movie not found" in str(HTTPError.value)
+
+def testCreateReportReviewerNotFound():
+    with pytest.raises(HTTPException) as HTTPError:
+        ReportManager.createReport(
+            movie="Test Movie",
+            reviewer="NonExistentUser",
+            reviewTitle="title",
+            reporter="reporter",
+            reason="spam"
+        )
+    assert "Reviewer not found" in str(HTTPError.value)
+
+def testCreateReportReporterNotFound():
+    user1 = User(name="reviewer3", email="reviewer3@gmail.com", password="password123")
+    UserController.createUser(user1)
+    
+    with pytest.raises(HTTPException) as HTTPError:
+        ReportManager.createReport(
+            movie="Test Movie",
+            reviewer="reviewer3",
+            reviewTitle="title",
+            reporter="NonExistentReporter",
+            reason="spam"
+        )
+    assert "Reporter not found" in str(HTTPError.value)
+    
+    UserManager.deleteUser("reviewer3")
+
+def testCreateReportReviewNotFound():
+    user1 = User(name="reviewer4", email="reviewer4@gmail.com", password="password123")
+    user2 = User(name="reporter4", email="reporter4@gmail.com", password="password456")
+    UserController.createUser(user1)
+    UserController.createUser(user2)
+
+    with pytest.raises(HTTPException) as HTTPError:
+        ReportManager.createReport(
+            movie="Test Movie",
+            reviewer="reviewer4",
+            reviewTitle="NonExistentReviewTitle",
+            reporter="reporter4",
+            reason="spam"
+        )
+    assert "Review not found" in str(HTTPError.value)
+
+    UserManager.deleteUser("reviewer4")
+    UserManager.deleteUser("reporter4")
+
+def testCreateReportSelf():
+    user1 = User(name="reviewer5", email="reviewer5@gmail.com", password="password123")
+    UserController.createUser(user1)
+
+    reviewStuff = ReviewCreate(reviewer="reviewer5", rating=5, title="test review 5", description="this movie was terrible")
+    ReviewController.addReview("Test Movie", reviewStuff)
+
+    with pytest.raises(HTTPException) as HTTPError:
+        ReportManager.createReport(
+            movie="Test Movie",
+            reviewer="reviewer5",
+            reviewTitle="test review 5",
+            reporter="reviewer5",
+            reason="spam"
+        )
+    assert "You can't report your own review" in str(HTTPError.value)
+
+    ReviewController.removeReview("Test Movie", "reviewer5", "test review 5")
+    UserManager.deleteUser("reviewer5")
+
+def testCreateReportEmptyReason():
+    user1 = User(name="reviewer6", email="reviewer6@gmail.com", password="password123")
+    user2 = User(name="reporter6", email="reporter6@gmail.com", password="password456")
+    UserController.createUser(user1)
+    UserController.createUser(user2)
+
+    reviewStuff = ReviewCreate(reviewer="reviewer6", rating=5, title="test review 6", description="this movie was terrible")
+    ReviewController.addReview("Test Movie", reviewStuff)
+
+    with pytest.raises(HTTPException) as HTTPError:
+        ReportManager.createReport(
+            movie="Test Movie",
+            reviewer="reviewer6",
+            reviewTitle="test review 6",
+            reporter="reporter6",
+            reason=""
+        )
+    assert "Reason can't be empty" in str(HTTPError.value)
+    
+    ReviewController.removeReview("Test Movie", "reviewer6", "test review 6")
+    UserManager.deleteUser("reviewer6")
+    UserManager.deleteUser("reporter6")
+
+def testDeleteReportManager():
+    user1 = User(name="reviewer7", email="reviewer7@gmail.com", password="password123")
+    user2 = User(name="reporter7", email="reporter7@gmail.com", password="password456")
+    UserController.createUser(user1)
+    UserController.createUser(user2)
+
+    reviewStuff = ReviewCreate(reviewer="reviewer7", rating=5, title="test review 7", description="this movie was terrible")
+    ReviewController.addReview("Test Movie", reviewStuff)
+
+    report = ReportManager.createReport("Test Movie", "reviewer7", "test review 7", "reporter7", "Inappropriate content")
+    reportId = report.reportId
+
+    result = ReportManager.deleteReports(reportId)
+    assert result is True
+
+    allReports = ReportManager.getReports()
+    reportIds = [r.reportId for r in allReports]
+    assert reportId not in reportIds
+
+    ReviewController.removeReview("Test Movie", "reviewer7", "test review 7")
+    UserManager.deleteUser("reviewer7")
+    UserManager.deleteUser("reporter7")
+
+def testDeleteReportManagerNotFound():
+    result = ReportManager.deleteReports("wahhhhoooooble")
+    assert result is False 
+
+
+
+
